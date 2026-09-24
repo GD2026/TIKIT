@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023"],
+    "types": ["node"]
+  },
+  "include": ["src/node", "src/shared", "src/server", "tests/unit", "tests/api", "tests/e2e", "scripts", "vite.config.ts", "vitest.config.ts", "vitest.sql.config.ts", "playwright.config.ts"]
+}
