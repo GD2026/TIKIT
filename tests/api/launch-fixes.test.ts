@@ -205,3 +205,24 @@ describe('access', () => {
     expect((await h.call('PATCH', '/me', { name: 'Emma Hansen-Berg' }, emma)).status).toBe(200);
   });
 });
+
+describe('personvern', () => {
+  it('deletes and anonymizes personal data once its retention period has passed', async () => {
+    const { applyRetention, ANONYMIZED } = await import('../../src/server/services/retention');
+    const h = await makeHarness();
+    const emma = await h.login('buyer');
+    const t = await emmaTicket(h, emma);
+    // Recent data is left alone.
+    await applyRetention(h.deps, { force: true });
+    expect((await h.deps.store.read((tx) => tx.get('orders', t.orderId)))!.buyer.name).toBe('Emma Hansen');
+    // Seven years later nothing personal about the purchase is left – but the order itself (accounting) is.
+    h.advance(7 * 365 * 86_400_000);
+    await applyRetention(h.deps, { force: true });
+    const order = await h.deps.store.read((tx) => tx.get('orders', t.orderId));
+    expect(order!.buyer).toEqual({ name: ANONYMIZED, email: null, phone: null });
+    expect(order!.totalOre).toBeGreaterThan(0);
+    expect((await h.deps.store.read((tx) => tx.get('tickets', t.id)))!.holderName).toBe(ANONYMIZED);
+    expect(await h.deps.store.read((tx) => tx.count('notifications'))).toBe(0);
+    expect(await h.deps.store.read((tx) => tx.count('checkins'))).toBe(0);
+  });
+});

@@ -85,7 +85,7 @@ export async function sendMailSafe(deps: Deps, msg: { to: string; subject: strin
   try {
     await deps.mailer.send(msg);
   } catch (err) {
-    deps.log.error('E-post kunne ikke sendes', { to: msg.to, subject: msg.subject, error: String(err) });
+    deps.log.error('E-post kunne ikke sendes', { subject: msg.subject, error: String(err) });
   }
 }
 

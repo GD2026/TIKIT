@@ -10,6 +10,7 @@ import { expireStaleOrders, pollPendingPayments, retryPendingCaptures } from './
 import { expireTransfers } from './tickets';
 import { retryCancelledEventRefunds } from './refunds';
 import { runDuePaymentJobs } from './paymentJobs';
+import { applyRetention } from './retention';
 import { loadTicketTypes, activeHeld, availableOf } from './inventory';
 import { ticketTypeState } from './dto';
 import { formatEventWhen } from '../../shared/time';
@@ -165,6 +166,7 @@ export interface CronResult {
   reminders: number;
   refundRetries: number;
   paymentJobs: number;
+  retention: number;
 }
 
 let cronRunning = false;
@@ -182,6 +184,7 @@ export async function runCron(deps: Deps): Promise<CronResult | null> {
       reminders: await sendEventReminders(deps),
       refundRetries: await retryCancelledEventRefunds(deps),
       paymentJobs: await runDuePaymentJobs(deps),
+      retention: await applyRetention(deps),
     };
     await cleanup(deps);
     return result;

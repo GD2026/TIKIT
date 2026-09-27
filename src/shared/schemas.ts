@@ -4,6 +4,9 @@ import { isValidAccountNumber, isValidOrgNumber, normalizePhone } from './valida
 import { isValidBirthdate } from './time';
 import { MAX_PRICE_ORE } from './money';
 
+// Validation messages users see are Norwegian (field-specific messages below override these).
+z.config(z.locales.no());
+
 const text = (max: number, min = 0, label = 'Feltet') =>
   z
     .string()

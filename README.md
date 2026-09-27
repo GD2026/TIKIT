@@ -62,6 +62,8 @@ Den samme appen finnes også som ren nettleserdemo (hele API-et kjører i nettle
 ## Oppsett og drift
 
 - **Status og det som gjenstår før lansering:** [LAUNCH.md](LAUNCH.md)
+- **Sikkerhet, samsvar og go/no-go:** [docs/go-no-go.md](docs/go-no-go.md)
+- **Personvern, vilkår og informasjonskapsler (norsk og engelsk):** [docs/juridisk/](docs/juridisk/)
 - **Nøkler for Vipps, Google, Apple, Stripe og e-post:** [docs/oppsett.md](docs/oppsett.md)
 - **Publisering (Render, Docker), bakgrunnsjobber, overvåking og sjekkliste før salg:** [docs/drift.md](docs/drift.md)
 - **OmniRoute (AI-verktøy for utviklere – appen bruker ikke AI):** [docs/omniroute.md](docs/omniroute.md)

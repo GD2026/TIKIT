@@ -48,6 +48,8 @@ Fire uavhengige gjennomganger (sikkerhet, penger og billetter, brukergrensesnitt
 - Av/på-bryterne var tegnet feil overalt. Lange titler som BUSSLANSERING gikk utenfor skjermen på mobil. «Flere innstillinger» lukket seg mens man brukte den. Arrangementer med gamle kategorier kunne ikke lagres. Kvitteringen manglet arrangørens kontaktinfo, som vilkårene lover.
 - I tillegg: kontrast, skjermleser, tekstfeil og en dørskanner der «Tilbake» logget ut uten å spørre.
 
+Sikkerhet, samsvar og full go/no-go-vurdering står i [docs/go-no-go.md](docs/go-no-go.md). Personvernerklæring, kjøpsvilkår og informasjonskapsler (norsk og engelsk) ligger i [docs/juridisk/](docs/juridisk/).
+
 ## Det som gjenstår – bare du kan gjøre dette
 
 1. **Legg koden på GitHub.** Pakk ut `tikit.zip` (den har hele Git-historikken) og kjør:
@@ -63,7 +65,7 @@ Fire uavhengige gjennomganger (sikkerhet, penger og billetter, brukergrensesnitt
 5. **Resend** for e-post: opprett konto og verifiser avsenderdomenet (DNS). Det er påkrevd i produksjon.
 6. **Produksjon på Render.** Opprett Blueprinten fra `render.yaml`. Den bruker betalte planer, så du må legge inn betalingskort hos Render. Fyll inn nøklene, registrer Vipps-webhooken og følg sjekklisten i [docs/drift.md](docs/drift.md).
 7. **Valgfritt:** Google-innlogging (gratis), Apple-innlogging (krever Apple Developer Program), Stripe for kort.
-8. **Juridisk og regnskap.** Gå gjennom kjøpsvilkår og personvern (`/vilkar`, `/personvernerklaering`) med en rådgiver, og avklar MVA på servicegebyret med regnskapsfører.
+8. **Juridisk og regnskap.** Fyll inn adresse og support-e-post i `docs/juridisk/`, og få kjøpsvilkår og personvern gjennomgått av en rådgiver. Lag en arrangøravtale, godta databehandleravtalene hos Render og Resend, og avklar MVA på servicegebyret med regnskapsfører.
 9. **Første ekte test.** Gjør kjøp, refusjon, overføring, videresalg og innsjekk med ekte Vipps før dere åpner salget.
 
 `OPERATOR_NAME` og `OPERATOR_ORG_NUMBER` står allerede i Blueprintene (Din Russetid AS, 936 491 243). Endre dem der hvis et annet selskap skal stå som formidler.
