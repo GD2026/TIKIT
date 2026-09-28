@@ -1,0 +1,538 @@
+@import 'tailwindcss';
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   TIKIT design tokens
+   Apple HIG semantics (labels, fills, grouped backgrounds, materials) with one
+   brand tint: "Blåtime" – the blue-violet of a Norwegian May night.
+   Light is defined on bare :root; dark follows the system (and an explicit
+   data-theme stamp from hosts that set one).
+   ───────────────────────────────────────────────────────────────────────────── */
+
+@font-face {
+  font-family: 'Archivo Display';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  src: url('@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light;
+
+  --tint: #3b4cf2;
+  --tint-fill: #3b4cf2;
+  --tint-pressed: #2f3fd8;
+  --on-tint: #ffffff;
+  --tint-soft: rgba(59, 76, 242, 0.12);
+  --tint-soft-strong: rgba(59, 76, 242, 0.2);
+
+  --label: #000000;
+  --label-2: rgba(60, 60, 67, 0.78);
+  --label-3: rgba(60, 60, 67, 0.46);
+  --label-4: rgba(60, 60, 67, 0.2);
+  --placeholder: rgba(60, 60, 67, 0.8);
+
+  --bg: #ffffff;
+  --bg-2: #f2f2f7;
+  --bg-3: #ffffff;
+  --bg-grouped: #f2f2f7;
+  --bg-grouped-2: #ffffff;
+  --bg-grouped-3: #f2f2f7;
+  --bg-elevated: #ffffff;
+  --segment: #ffffff;
+
+  --fill: rgba(120, 120, 128, 0.2);
+  --fill-2: rgba(120, 120, 128, 0.16);
+  --fill-3: rgba(118, 118, 128, 0.12);
+  --fill-4: rgba(116, 116, 128, 0.08);
+
+  --separator: rgba(60, 60, 67, 0.22);
+  --separator-opaque: #c6c6c8;
+
+  --green: #1a7031;
+  --green-fill: #34c759;
+  --green-soft: rgba(52, 199, 89, 0.16);
+  --orange: #b93000;
+  --orange-fill: #ff9500;
+  --orange-soft: rgba(255, 149, 0, 0.16);
+  --red: #c80013;
+  --red-fill: #ff3b30;
+  --red-soft: rgba(255, 59, 48, 0.12);
+  --yellow-fill: #ffcc00;
+  /* Count badges (white text): #d70015 = 5.4:1. */
+  --badge: #d70015;
+
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-bg-strong: rgba(255, 255, 255, 0.86);
+  --glass-stroke: rgba(255, 255, 255, 0.7);
+  --glass-edge: rgba(0, 0, 0, 0.08);
+  --glass-shadow: 0 10px 30px rgba(15, 18, 60, 0.12), 0 1px 3px rgba(15, 18, 60, 0.08);
+  --card-shadow: 0 1px 2px rgba(15, 18, 60, 0.06), 0 8px 24px rgba(15, 18, 60, 0.06);
+  --lift-shadow: 0 18px 50px rgba(15, 18, 60, 0.18), 0 2px 8px rgba(15, 18, 60, 0.08);
+  --scrim: rgba(0, 0, 0, 0.42);
+
+  --vipps: #ff5b24;
+  --vipps-pressed: #e8481a;
+  --google-bg: #ffffff;
+  --google-fg: #1f1f1f;
+  --google-border: #747775;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --tabbar-height: 64px;
+  --tabbar-gap: 12px;
+
+  /* Charts: one series in the brand tint (validated ≥3:1 on grouped-2 in both modes), hairline grid. */
+  --chart-series: #3b4cf2;
+  --chart-grid: #e5e5ea;
+  --chart-baseline: #c7c7cc;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --tint: #9eabff;
+    --tint-fill: #4c5df7;
+    --tint-pressed: #3f50e8;
+    --on-tint: #ffffff;
+    --tint-soft: rgba(140, 155, 255, 0.16);
+    --tint-soft-strong: rgba(140, 155, 255, 0.26);
+    --label: #ffffff;
+    --label-2: rgba(235, 235, 245, 0.64);
+    --label-3: rgba(235, 235, 245, 0.34);
+    --label-4: rgba(235, 235, 245, 0.18);
+    --placeholder: rgba(235, 235, 245, 0.6);
+    --bg: #000000;
+    --bg-2: #1c1c1e;
+    --bg-3: #2c2c2e;
+    --bg-grouped: #000000;
+    --bg-grouped-2: #1c1c1e;
+    --bg-grouped-3: #2c2c2e;
+    --bg-elevated: #1c1c1e;
+    --segment: #636366;
+    --fill: rgba(120, 120, 128, 0.36);
+    --fill-2: rgba(120, 120, 128, 0.32);
+    --fill-3: rgba(118, 118, 128, 0.24);
+    --fill-4: rgba(118, 118, 128, 0.18);
+    --separator: rgba(84, 84, 88, 0.65);
+    --separator-opaque: #38383a;
+    --green: #30d158;
+    --green-fill: #30d158;
+    --green-soft: rgba(48, 209, 88, 0.18);
+    --orange: #ff9f0a;
+    --orange-fill: #ff9f0a;
+    --orange-soft: rgba(255, 159, 10, 0.18);
+    --red: #ff847b;
+    --red-fill: #ff453a;
+    --red-soft: rgba(255, 69, 58, 0.18);
+    --yellow-fill: #ffd60a;
+    --badge: #d6281e;
+    --glass-bg: rgba(28, 28, 32, 0.68);
+    --glass-bg-strong: rgba(28, 28, 32, 0.86);
+    --glass-stroke: rgba(255, 255, 255, 0.14);
+    --glass-edge: rgba(255, 255, 255, 0.08);
+    --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4);
+    --card-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.08);
+    --lift-shadow: 0 18px 50px rgba(0, 0, 0, 0.6);
+    --scrim: rgba(0, 0, 0, 0.6);
+    --google-bg: #131314;
+    --google-fg: #e3e3e3;
+    --google-border: #8e918f;
+    --chart-series: #4c5df7;
+    --chart-grid: #2c2c2e;
+    --chart-baseline: #48484a;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --tint: #9eabff;
+  --tint-fill: #4c5df7;
+  --tint-pressed: #3f50e8;
+  --on-tint: #ffffff;
+  --tint-soft: rgba(140, 155, 255, 0.16);
+  --tint-soft-strong: rgba(140, 155, 255, 0.26);
+  --label: #ffffff;
+  --label-2: rgba(235, 235, 245, 0.64);
+  --label-3: rgba(235, 235, 245, 0.34);
+  --label-4: rgba(235, 235, 245, 0.18);
+  --placeholder: rgba(235, 235, 245, 0.6);
+  --bg: #000000;
+  --bg-2: #1c1c1e;
+  --bg-3: #2c2c2e;
+  --bg-grouped: #000000;
+  --bg-grouped-2: #1c1c1e;
+  --bg-grouped-3: #2c2c2e;
+  --bg-elevated: #1c1c1e;
+  --segment: #636366;
+  --fill: rgba(120, 120, 128, 0.36);
+  --fill-2: rgba(120, 120, 128, 0.32);
+  --fill-3: rgba(118, 118, 128, 0.24);
+  --fill-4: rgba(118, 118, 128, 0.18);
+  --separator: rgba(84, 84, 88, 0.65);
+  --separator-opaque: #38383a;
+  --green: #30d158;
+  --green-fill: #30d158;
+  --green-soft: rgba(48, 209, 88, 0.18);
+  --orange: #ff9f0a;
+  --orange-fill: #ff9f0a;
+  --orange-soft: rgba(255, 159, 10, 0.18);
+  --red: #ff847b;
+  --red-fill: #ff453a;
+  --red-soft: rgba(255, 69, 58, 0.18);
+  --yellow-fill: #ffd60a;
+  --badge: #d6281e;
+  --glass-bg: rgba(28, 28, 32, 0.68);
+  --glass-bg-strong: rgba(28, 28, 32, 0.86);
+  --glass-stroke: rgba(255, 255, 255, 0.14);
+  --glass-edge: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4);
+  --card-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.08);
+  --lift-shadow: 0 18px 50px rgba(0, 0, 0, 0.6);
+  --scrim: rgba(0, 0, 0, 0.6);
+  --google-bg: #131314;
+  --google-fg: #e3e3e3;
+  --google-border: #8e918f;
+  --chart-series: #4c5df7;
+  --chart-grid: #2c2c2e;
+  --chart-baseline: #48484a;
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --label-2: rgba(60, 60, 67, 0.9);
+    --separator: rgba(60, 60, 67, 0.5);
+    --glass-bg: rgba(255, 255, 255, 0.95);
+    --glass-edge: rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Tailwind theme bridge: utilities read the live tokens above. */
+@theme inline {
+  --spacing: 4px;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-display: 'Archivo Display', -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Dynamic-Type-like scale (1rem = body size, follows the reader's text size) */
+  --text-large-title: 2rem;
+  --text-large-title--line-height: 1.2;
+  --text-title1: 1.647rem;
+  --text-title1--line-height: 1.214;
+  --text-title2: 1.294rem;
+  --text-title2--line-height: 1.273;
+  --text-title3: 1.176rem;
+  --text-title3--line-height: 1.25;
+  --text-headline: 1rem;
+  --text-headline--line-height: 1.294;
+  --text-body: 1rem;
+  --text-body--line-height: 1.294;
+  --text-callout: 0.941rem;
+  --text-callout--line-height: 1.3125;
+  --text-subhead: 0.882rem;
+  --text-subhead--line-height: 1.333;
+  --text-footnote: 0.765rem;
+  --text-footnote--line-height: 1.385;
+  --text-caption1: 0.706rem;
+  --text-caption1--line-height: 1.333;
+  --text-caption2: 0.647rem;
+  --text-caption2--line-height: 1.182;
+
+  --color-tint: var(--tint);
+  --color-tint-fill: var(--tint-fill);
+  --color-tint-soft: var(--tint-soft);
+  --color-on-tint: var(--on-tint);
+  --color-label: var(--label);
+  --color-label-2: var(--label-2);
+  --color-label-3: var(--label-3);
+  --color-label-4: var(--label-4);
+  --color-bg: var(--bg);
+  --color-bg-2: var(--bg-2);
+  --color-bg-3: var(--bg-3);
+  --color-grouped: var(--bg-grouped);
+  --color-grouped-2: var(--bg-grouped-2);
+  --color-grouped-3: var(--bg-grouped-3);
+  --color-elevated: var(--bg-elevated);
+  --color-fill: var(--fill);
+  --color-fill-2: var(--fill-2);
+  --color-fill-3: var(--fill-3);
+  --color-fill-4: var(--fill-4);
+  --color-separator: var(--separator);
+  --color-green: var(--green);
+  --color-green-fill: var(--green-fill);
+  --color-green-soft: var(--green-soft);
+  --color-orange: var(--orange);
+  --color-orange-fill: var(--orange-fill);
+  --color-orange-soft: var(--orange-soft);
+  --color-red: var(--red);
+  --color-red-fill: var(--red-fill);
+  --color-red-soft: var(--red-soft);
+  --color-vipps: var(--vipps);
+
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 26px;
+  --radius-2xl: 34px;
+
+  --ease-out: var(--ease-out);
+  --ease-spring: var(--spring);
+
+  --breakpoint-sm: 480px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+}
+
+/* ── Base ─────────────────────────────────────────────────────────────────── */
+
+/*
+ * Unlayered and a little more specific on purpose: a host page that injects its own reset
+ * (the claude.ai artifact viewer does) would otherwise beat these layered base styles and paint
+ * dark text on the dark theme. Text colour, ground and font must always come from TIKIT.
+ */
+html body {
+  margin: 0;
+  color: var(--label);
+  background: var(--bg-grouped);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.294;
+}
+
+@layer base {
+  html {
+    /* 17px body on most devices, honouring the reader's browser text size. */
+    font-size: 106.25%;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    background: var(--bg-grouped);
+  }
+
+  /* iOS / iPadOS Safari: follow Dynamic Type. */
+  @supports (font: -apple-system-body) and (-webkit-touch-callout: none) {
+    html {
+      font: -apple-system-body;
+    }
+  }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.294;
+    color: var(--label);
+    background: var(--bg-grouped);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    overscroll-behavior-y: none;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  :focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--tint) 70%, transparent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  button,
+  [role='button'],
+  a,
+  summary,
+  label[for],
+  select {
+    touch-action: manipulation;
+  }
+
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  summary,
+  select {
+    cursor: pointer;
+  }
+
+  input,
+  textarea,
+  select,
+  button {
+    font: inherit;
+    color: inherit;
+  }
+
+  ::placeholder {
+    color: var(--placeholder);
+    opacity: 1;
+  }
+
+  ::selection {
+    background: var(--tint-soft-strong);
+  }
+
+  img,
+  svg {
+    max-width: 100%;
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+}
+
+/* ── Materials (functional layer only) ───────────────────────────────────── */
+
+@utility glass {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+  backdrop-filter: blur(24px) saturate(1.6);
+  box-shadow:
+    inset 0 0.5px 0 var(--glass-stroke),
+    0 0 0 0.5px var(--glass-edge),
+    var(--glass-shadow);
+  @media (prefers-reduced-transparency: reduce) {
+    background: var(--glass-bg-strong);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@utility glass-bar {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  backdrop-filter: blur(20px) saturate(1.6);
+  @media (prefers-reduced-transparency: reduce) {
+    background: var(--glass-bg-strong);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* Clear glass over imagery (always light-on-dark, it sits on posters). */
+@utility glass-clear {
+  background: rgba(20, 20, 30, 0.28);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
+  box-shadow:
+    inset 0 0.5px 0 rgba(255, 255, 255, 0.35),
+    0 0 0 0.5px rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  @media (prefers-reduced-transparency: reduce) {
+    background: rgba(20, 20, 30, 0.82);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@utility card {
+  background: var(--bg-grouped-2);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-shadow);
+}
+
+@utility hairline-b {
+  box-shadow: inset 0 -0.5px 0 var(--separator);
+}
+
+@utility hairline-t {
+  box-shadow: inset 0 0.5px 0 var(--separator);
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility display {
+  font-family: var(--font-display);
+  font-stretch: 118%;
+  font-weight: 820;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+@utility skeleton {
+  background: linear-gradient(90deg, var(--fill-3) 0%, var(--fill-4) 50%, var(--fill-3) 100%);
+  background-size: 200% 100%;
+  animation: tikit-shimmer 1.4s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+@layer components {
+  .press {
+    transition:
+      transform 160ms var(--ease-out),
+      opacity 160ms var(--ease-out),
+      background-color 160ms var(--ease-out);
+  }
+  .press:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+}
+
+@keyframes tikit-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+@keyframes tikit-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes tikit-sheen {
+  0% {
+    transform: translateX(-60%) rotate(18deg);
+  }
+  100% {
+    transform: translateX(160%) rotate(18deg);
+  }
+}
+
+@keyframes tikit-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

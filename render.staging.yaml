@@ -1,0 +1,36 @@
+# Render Blueprint – DEMO: én gratis web-tjeneste uten database og uten nøkler.
+# All innlogging og betaling er simulert, og eksempeldata legges inn på nytt hver gang tjenesten starter
+# (gratisplanen sover etter 15 min uten trafikk, og den lokale disken nullstilles). Aldri ekte salg her.
+# Oppsett i Render: New → Blueprint → velg repoet → Blueprint Path: render.staging.yaml
+services:
+  - type: web
+    name: tikit-demo
+    runtime: node
+    region: frankfurt
+    plan: free
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 22.22.0
+      - key: DEMO_MODE
+        value: "true"
+      - key: SEED_DEMO_DATA
+        value: "true"
+      - key: ALLOW_EMBEDDED_DB
+        value: "true"
+      - key: CLIENT_IP_HEADER
+        value: cf-connecting-ip
+      - key: TRUST_PROXY
+        value: "1"
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: CRON_SECRET
+        generateValue: true
+      - key: OPERATOR_NAME
+        value: Din Russetid AS
+      - key: OPERATOR_ORG_NUMBER
+        value: "936 491 243"
