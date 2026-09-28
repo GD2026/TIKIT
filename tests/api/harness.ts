@@ -45,7 +45,7 @@ export function testConfig(overrides: Partial<ServerConfig> = {}): ServerConfig 
 async function testStore(): Promise<Store> {
   const kind = process.env.TIKIT_TEST_STORE ?? 'memory';
   if (kind === 'memory') return new MemoryStore();
-  const { SqlStore, createPgliteDriver, createPostgresDriver, migrate } = await import('../../src/node/sqlStore');
+  const { SqlStore, createPgliteDriver, createPostgresDriver, migrate } = await import('../../src/node/db/sqlStore');
   if (kind === 'pglite') {
     const driver = await createPgliteDriver(undefined);
     await migrate(driver);

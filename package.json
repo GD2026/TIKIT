@@ -24,6 +24,7 @@
     "test:e2e": "playwright test",
     "icons": "node scripts/generate-icons.mjs",
     "vipps:webhook": "tsx scripts/register-vipps-webhook.ts",
+    "doctor": "tsx scripts/doctor.ts",
     "check": "npm run typecheck && npm run lint && npm test"
   },
   "dependencies": {

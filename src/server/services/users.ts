@@ -8,6 +8,7 @@ import type { ExternalProfile } from '../adapters/types';
 import type { Deps } from '../context';
 import type { Tx } from '../store/types';
 import { audit, nowIso } from './common';
+import { openSecret, sealSecret } from './sealed';
 
 export const DEFAULT_PREFS = { email: true, reminders: true, waitlist: true, marketing: false } as const;
 
@@ -124,6 +125,8 @@ export async function loginWithProfile(
   opts: { linkToUserId?: string | null } = {},
 ): Promise<{ user: User; created: boolean }> {
   const now = nowIso(deps);
+  // Sealed outside the transaction (Web Crypto is async and the transaction may be retried).
+  const revocation = profile.revocation ? await sealSecret(deps.config.sessionSecret, JSON.stringify(profile.revocation)) : null;
   const result = await deps.store.tx(async (tx) => {
     let identity = await tx.findOne('identities', { provider: profile.provider, subject: profile.subject });
     let user: User | null = null;
@@ -188,12 +191,18 @@ export async function loginWithProfile(
         email: profile.email,
         emailVerified: profile.emailVerified,
         demo: profile.demo,
+        revocation,
         createdAt: now,
         lastUsedAt: now,
       } satisfies Identity;
       await tx.insert('identities', identity);
     } else {
-      await tx.update('identities', identity.id, { lastUsedAt: now, email: profile.email ?? identity.email, emailVerified: profile.emailVerified });
+      await tx.update('identities', identity.id, {
+        lastUsedAt: now,
+        email: profile.email ?? identity.email,
+        emailVerified: profile.emailVerified,
+        ...(revocation ? { revocation } : {}),
+      });
     }
 
     await acceptInvites(tx, deps, user);
@@ -201,6 +210,44 @@ export async function loginWithProfile(
     return { user, created };
   });
   return result;
+}
+
+/**
+ * The account App Review signs in to (routes/nativeAuth.ts). Created on first use with no login method of
+ * its own; it can never be a platform admin, so a leaked review code can't reach the admin pages.
+ */
+export async function findOrCreateReviewUser(deps: Deps, email: string): Promise<User> {
+  const now = nowIso(deps);
+  return deps.store.tx(async (tx) => {
+    const existing = (await tx.find('users', { email })).find((u) => !u.deletedAt) ?? null;
+    if (existing) {
+      if (existing.role === 'admin') throw new AppError('forbidden', { message: 'App Review-kontoen kan ikke være administrator.' });
+      if (existing.banned) throw new AppError('account_banned');
+      await audit(tx, deps, existing.id, 'review.login', 'users', existing.id);
+      return tx.update('users', existing.id, { lastLoginAt: now, updatedAt: now });
+    }
+    const user: User = {
+      id: newId(),
+      name: 'App Review',
+      email,
+      emailVerified: true,
+      phone: null,
+      phoneVerified: false,
+      birthdate: null,
+      birthdateVerified: false,
+      city: null,
+      role: 'user',
+      prefs: { ...DEFAULT_PREFS },
+      banned: false,
+      createdAt: now,
+      updatedAt: now,
+      lastLoginAt: now,
+      deletedAt: null,
+    };
+    await tx.insert('users', user);
+    await audit(tx, deps, user.id, 'review.login', 'users', user.id, { created: true });
+    return user;
+  });
 }
 
 export async function getMe(deps: Deps, userId: string): Promise<Me> {
@@ -269,6 +316,28 @@ export async function updateProfile(deps: Deps, userId: string, input: ProfileUp
   });
 }
 
+/**
+ * Apple asks apps to revoke Sign in with Apple grants when an account is deleted (and we do the same when
+ * Apple is unlinked). Runs after commit; a failure is logged and never blocks the deletion.
+ */
+function revokeAfterCommit(tx: Tx, deps: Deps, identities: Identity[]): void {
+  const apple = deps.appleNative;
+  const sealed = identities.filter((i) => i.provider === 'apple' && i.revocation).map((i) => i.revocation!);
+  if (!apple || sealed.length === 0) return;
+  tx.afterCommit(async () => {
+    for (const s of sealed) {
+      const raw = await openSecret(deps.config.sessionSecret, s);
+      if (!raw) continue;
+      try {
+        const grant = JSON.parse(raw) as { clientId: string; token: string };
+        await apple.revoke(grant.clientId, grant.token);
+      } catch (err) {
+        deps.log.warn('Kunne ikke trekke tilbake Apple-innlogging', { error: String(err) });
+      }
+    }
+  });
+}
+
 export async function unlinkIdentity(deps: Deps, userId: string, provider: ProviderId): Promise<void> {
   await deps.store.tx(async (tx) => {
     const identities = await tx.find('identities', { userId });
@@ -276,6 +345,7 @@ export async function unlinkIdentity(deps: Deps, userId: string, provider: Provi
     if (target.length === 0) throw new AppError('not_found');
     if (identities.length - target.length < 1) throw new AppError('last_login_method');
     for (const i of target) await tx.delete('identities', i.id);
+    revokeAfterCommit(tx, deps, target);
     // What Vipps verified (age, phone) stops being verified once Vipps is no longer attached to the account.
     if (provider === 'vipps') await tx.update('users', userId, { birthdateVerified: false, phoneVerified: false, updatedAt: nowIso(deps) });
     await audit(tx, deps, userId, 'identity.unlinked', 'users', userId, { provider });
@@ -292,6 +362,8 @@ export async function exportUserData(deps: Deps, userId: string): Promise<Record
     const notifications = await tx.find('notifications', { userId });
     const favorites = await tx.find('favorites', { userId });
     const follows = await tx.find('follows', { userId });
+    const blocks = await tx.find('blocks', { userId });
+    const reports = (await tx.find('reports')).filter((r) => r.reporterId === userId);
     return {
       exportedAt: nowIso(deps),
       user,
@@ -301,6 +373,8 @@ export async function exportUserData(deps: Deps, userId: string): Promise<Record
       notifications: notifications.map((n) => ({ title: n.title, body: n.body, createdAt: n.createdAt })),
       favorites: favorites.map((f) => f.eventId),
       follows: follows.map((f) => f.organizerId),
+      blockedOrganizers: blocks.map((b) => b.organizerId),
+      reports: reports.map((r) => ({ kind: r.kind, targetTitle: r.targetTitle, reason: r.reason, message: r.message, status: r.status, createdAt: r.createdAt })),
     };
   });
 }
@@ -323,7 +397,8 @@ export async function deleteAccount(deps: Deps, userId: string): Promise<void> {
       }
       await tx.delete('orgMembers', m.id);
     }
-    for (const c of ['identities', 'sessions', 'notifications', 'favorites', 'follows', 'waitlist', 'saleAlerts', 'queueEntries'] as const) {
+    revokeAfterCommit(tx, deps, await tx.find('identities', { userId }));
+    for (const c of ['identities', 'sessions', 'notifications', 'favorites', 'follows', 'waitlist', 'saleAlerts', 'queueEntries', 'blocks'] as const) {
       await tx.deleteWhere(c, { userId } as never);
     }
     const orders = await tx.find('orders', { userId });

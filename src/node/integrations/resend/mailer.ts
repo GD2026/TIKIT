@@ -1,4 +1,4 @@
-import type { Logger, MailMessage, Mailer } from '../server/adapters/types';
+import type { Logger, MailMessage, Mailer } from '../../../server/adapters/types';
 
 /**
  * Transactional e-mail through Resend (https://resend.com). The sender domain must be verified

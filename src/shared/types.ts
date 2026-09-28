@@ -47,6 +47,8 @@ export interface Identity {
   email: string | null;
   emailVerified: boolean;
   demo: boolean;
+  /** Encrypted provider grant to revoke on account deletion (Sign in with Apple). See services/sealed.ts. */
+  revocation?: string | null;
   createdAt: ISODate;
   lastUsedAt: ISODate;
 }
@@ -168,6 +170,8 @@ export interface EventDoc {
   publishedAt: ISODate | null;
   cancelledAt: ISODate | null;
   cancelReason: string | null;
+  /** Hidden by the platform after a report (content moderation). The organizer can't publish it again. */
+  takedown?: { reason: string; at: ISODate; by: ID } | null;
 }
 
 export interface TicketType {
@@ -466,6 +470,35 @@ export interface Follow {
   id: string; // `${userId}:${organizerId}`
   userId: ID;
   organizerId: ID;
+  createdAt: ISODate;
+}
+
+/** A person hides an organizer: its events no longer show up in their feeds and search. */
+export interface Block {
+  id: string; // `${userId}:${organizerId}`
+  userId: ID;
+  organizerId: ID;
+  createdAt: ISODate;
+}
+
+export type ReportReason = 'offensive' | 'fraud' | 'illegal' | 'misleading' | 'other';
+export type ReportStatus = 'open' | 'resolved' | 'dismissed';
+
+/** A report of an event or organizer, handled by platform admins (App Store Review Guideline 1.2). */
+export interface Report {
+  id: ID;
+  kind: 'event' | 'organizer';
+  targetId: ID;
+  /** Snapshot for the admin list, so a report still reads well after the target changes. */
+  targetTitle: string;
+  organizerId: ID;
+  reason: ReportReason;
+  message: string;
+  reporterId: ID | null;
+  status: ReportStatus;
+  resolution: string | null;
+  resolvedBy: ID | null;
+  resolvedAt: ISODate | null;
   createdAt: ISODate;
 }
 
@@ -782,6 +815,10 @@ export interface AppConfig {
   serverTime: ISODate;
   qrStepSeconds: number;
   operator: { name: string; orgNumber: string | null; supportEmail: string | null };
+  /** Native Sign in with Apple is available to the iOS app (Apple keys + bundle ID on the server). */
+  appleNative: boolean;
+  /** App Review access code login is switched on (see routes/nativeAuth.ts). */
+  reviewLogin: boolean;
 }
 
 export interface Paged<T> {

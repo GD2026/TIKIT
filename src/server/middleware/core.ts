@@ -89,8 +89,11 @@ export function csrfMiddleware(deps: Deps): MiddlewareHandler<AppEnv> {
     if (c.req.header('authorization')?.toLowerCase().startsWith('bearer ')) return next();
     // Cookie-based requests must come from our own frontend: custom header + same origin.
     if (c.req.header('x-tikit') !== '1') throw new AppError('csrf');
+    // The iOS app's web view (capacitor://localhost) is a trusted origin too; browsers never let a web page
+    // claim that origin.
     const origin = c.req.header('origin');
-    if (origin && allowedOrigin && origin !== allowedOrigin && deps.config.production) throw new AppError('csrf');
+    const trusted = origin === allowedOrigin || (!!origin && (deps.config.native?.trustedOrigins ?? []).includes(origin));
+    if (origin && allowedOrigin && !trusted && deps.config.production) throw new AppError('csrf');
     return next();
   };
 }

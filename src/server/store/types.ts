@@ -32,6 +32,8 @@ export interface Collections {
   notifications: T.AppNotification;
   favorites: T.Favorite;
   follows: T.Follow;
+  blocks: T.Block;
+  reports: T.Report;
   images: T.ImageDoc;
   seatMaps: T.SeatMap;
   seatStates: T.SeatState;
@@ -71,6 +73,8 @@ export const COLLECTIONS: CollectionName[] = [
   'notifications',
   'favorites',
   'follows',
+  'blocks',
+  'reports',
   'images',
   'seatMaps',
   'seatStates',
@@ -156,6 +160,8 @@ export const INDEX_FIELDS: { [C in CollectionName]?: (keyof DocOf<C> & string)[]
   notifications: ['userId'],
   favorites: ['userId'],
   follows: ['userId', 'organizerId'],
+  blocks: ['userId'],
+  reports: ['status', 'targetId'],
 };
 
 export class UniqueViolation extends Error {

@@ -1,7 +1,9 @@
 import { createHash, createHmac } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
-import { createVippsPayments, mapVippsState } from '../../src/node/payments';
+import { createVippsPayments, mapVippsState } from '../../src/node/integrations/vipps/payments';
 import { loadConfig } from '../../src/node/config';
+import { databaseSetup } from '../../src/node/db/connection';
+import { openSecret, sealSecret } from '../../src/server/services/sealed';
 import type { Logger } from '../../src/server/adapters/types';
 
 const quiet: Logger = { info: () => {}, warn: () => {}, error: () => {} };
@@ -122,5 +124,75 @@ describe('server configuration', () => {
     expect(loadConfig({ ...prod, ...keys, VIPPS_ENV: 'production', VIPPS_WEBHOOK_SECRET: 'w' }).vipps?.issuer).toBe('https://api.vipps.no/access-management-1.0/access/');
     expect(loadConfig({ ...keys }).vipps?.baseUrl).toBe('https://apitest.vipps.no');
     expect(loadConfig({ VIPPS_CLIENT_ID: 'a' }).vipps).toBeNull();
+  });
+});
+
+describe('database connection (Supabase and others)', () => {
+  const base = { DATABASE_POOL_MAX: 10 };
+
+  it('uses the Supabase session pooler as is, with TLS', () => {
+    const s = databaseSetup('postgresql://postgres.abcd:pw@aws-0-eu-central-1.pooler.supabase.com:5432/postgres', base);
+    expect(s.provider).toBe('supabase');
+    expect(s.options.ssl).toBe('require');
+    expect(s.options.prepare).toBeUndefined();
+    expect(s.description).toContain('session pooler');
+    expect(s.description).not.toContain('pw');
+  });
+
+  it('turns off prepared statements behind the transaction pooler', () => {
+    const s = databaseSetup('postgresql://postgres.abcd:pw@aws-0-eu-central-1.pooler.supabase.com:6543/postgres', { DATABASE_POOL_MAX: 40 });
+    expect(s.options.prepare).toBe(false);
+    expect(s.options.max).toBe(10);
+  });
+
+  it('warns that the direct Supabase address is IPv6 only', () => {
+    const s = databaseSetup('postgresql://postgres:pw@db.abcd.supabase.co:5432/postgres', base);
+    expect(s.warnings.join(' ')).toContain('IPv6');
+  });
+
+  it('verifies the certificate when a CA is given', () => {
+    const s = databaseSetup('postgresql://postgres.abcd:pw@aws-0-eu-central-1.pooler.supabase.com:5432/postgres', { ...base, DATABASE_CA_CERT: '-----BEGIN CERTIFICATE-----\\nMII\\n-----END CERTIFICATE-----' });
+    expect(s.options.ssl).toEqual({ ca: '-----BEGIN CERTIFICATE-----\nMII\n-----END CERTIFICATE-----' });
+    expect(s.warnings).toEqual([]);
+  });
+
+  it('leaves other Postgres hosts alone', () => {
+    const s = databaseSetup('postgres://u:p@dpg-abc123-a/tikit', base);
+    expect(s.provider).toBe('render');
+    expect(s.options.ssl).toBeUndefined();
+  });
+});
+
+describe('iOS app and App Review configuration', () => {
+  const prod = { NODE_ENV: 'production', PUBLIC_URL: 'https://tikit.no', SESSION_SECRET: 'x'.repeat(40), DATABASE_URL: 'postgres://u:p@h/db', DEMO_MODE: 'true' };
+
+  it('derives the app IDs for universal links from team and bundle IDs', () => {
+    const cfg = loadConfig({ NODE_ENV: 'development', APPLE_TEAM_ID: 'ABCDE12345', APPLE_BUNDLE_IDS: 'no.tikit.app' });
+    expect(cfg.native.appIds).toEqual(['ABCDE12345.no.tikit.app']);
+    expect(cfg.native.corsOrigins).toEqual(['capacitor://localhost']);
+    expect(cfg.native.urlScheme).toBe('tikit');
+  });
+
+  it('rejects a short App Review code and plain-http app origins in production', () => {
+    expect(() => loadConfig({ ...prod, REVIEW_LOGIN_EMAIL: 'r@tikit.no', REVIEW_LOGIN_CODE: 'short' })).toThrow(/REVIEW_LOGIN_CODE/);
+    expect(() => loadConfig({ ...prod, APP_CORS_ORIGINS: 'http://evil.example' })).toThrow(/APP_CORS_ORIGINS/);
+    expect(() => loadConfig({ ...prod, APPLE_BUNDLE_IDS: 'not a bundle' })).toThrow(/APPLE_BUNDLE_IDS/);
+  });
+
+  it('warns while App Review access is on', () => {
+    const cfg = loadConfig({ ...prod, REVIEW_LOGIN_EMAIL: 'r@tikit.no', REVIEW_LOGIN_CODE: 'r'.repeat(20) });
+    expect(cfg.review).toEqual({ email: 'r@tikit.no', code: 'r'.repeat(20) });
+    expect(cfg.warnings.join(' ')).toContain('App Review-tilgang er PÅ');
+  });
+});
+
+describe('sealed secrets', () => {
+  it('round-trips and fails closed with another secret', async () => {
+    const sealed = await sealSecret('a'.repeat(40), 'refresh-token');
+    expect(sealed).toMatch(/^v1\./);
+    expect(sealed).not.toContain('refresh-token');
+    expect(await openSecret('a'.repeat(40), sealed)).toBe('refresh-token');
+    expect(await openSecret('b'.repeat(40), sealed)).toBeNull();
+    expect(await openSecret('a'.repeat(40), 'garbage')).toBeNull();
   });
 });

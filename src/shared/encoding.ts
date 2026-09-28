@@ -47,7 +47,7 @@ export function randomBytes(length: number): Uint8Array {
 }
 
 /** Copies into a fresh ArrayBuffer-backed view (keeps TypeScript's BufferSource typing happy). */
-function toBuffer(bytes: Uint8Array): ArrayBuffer {
+export function toBuffer(bytes: Uint8Array): ArrayBuffer {
   const copy = new Uint8Array(bytes.byteLength);
   copy.set(bytes);
   return copy.buffer;

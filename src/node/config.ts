@@ -28,6 +28,8 @@ const envSchema = z.object({
   /** Production refuses to run on the embedded PGlite database unless this is set (data lives on local disk). */
   ALLOW_EMBEDDED_DB: bool(false),
   DATABASE_SSL: z.enum(['', 'require', 'prefer', 'disable']).optional(),
+  /** PEM of the database server's CA (Supabase: Database Settings → SSL). Turns on full certificate verification. */
+  DATABASE_CA_CERT: optional,
   DATABASE_POOL_MAX: z.coerce.number().int().min(1).max(100).default(10),
   DATA_DIR: z.string().default('./data'),
   DEMO_MODE: optional,
@@ -62,6 +64,19 @@ const envSchema = z.object({
   APPLE_KEY_ID: optional,
   APPLE_PRIVATE_KEY: optional,
 
+  /** iOS app: bundle IDs (comma separated, e.g. no.tikit.app). Enables universal links and native Sign in with Apple. */
+  APPLE_BUNDLE_IDS: z.string().default(''),
+  /** URL scheme registered by the iOS app (Info.plist → CFBundleURLSchemes). */
+  APP_URL_SCHEME: z
+    .string()
+    .regex(/^[a-z][a-z0-9+.-]{1,30}$/, 'APP_URL_SCHEME må være små bokstaver, for eksempel tikit')
+    .default('tikit'),
+  /** Origins of the native app's web view, allowed to call the API with a bearer token (CORS). */
+  APP_CORS_ORIGINS: z.string().default('capacitor://localhost'),
+  /** App Review access: signing in with this code logs in as this (pre-created) account. Leave empty except during review. */
+  REVIEW_LOGIN_EMAIL: optional,
+  REVIEW_LOGIN_CODE: optional,
+
   STRIPE_SECRET_KEY: optional,
   STRIPE_WEBHOOK_SECRET: optional,
 
@@ -79,8 +94,18 @@ export interface NodeConfig {
   sessionSecret: string;
   demoMode: boolean;
   vipps: { baseUrl: string; issuer: string; clientId: string; clientSecret: string; subscriptionKey: string; msn: string } | null;
+  /** The iOS app (see ios/ and docs/ios.md). */
+  native: { bundleIds: string[]; appIds: string[]; urlScheme: string; corsOrigins: string[] };
+  /** App Review access (docs/app-store/review-notes.md). Null when off. */
+  review: { email: string; code: string } | null;
   warnings: string[];
 }
+
+const list = (value: string) =>
+  value
+    .split(',')
+    .map((v) => v.trim())
+    .filter(Boolean);
 
 export function loadConfig(source: Record<string, string | undefined> = process.env): NodeConfig {
   const parsed = envSchema.safeParse(source);
@@ -174,6 +199,37 @@ export function loadConfig(source: Record<string, string | undefined> = process.
   if (env.RESEND_API_KEY && !env.MAIL_FROM) errors.push('MAIL_FROM må settes når RESEND_API_KEY er satt (for eksempel "TIKIT <billetter@tikit.no>").');
   if (production && !env.OPERATOR_NAME) warnings.push('OPERATOR_NAME mangler – kjøpsvilkår og kvitteringer viser «TIKIT» som selger/formidler.');
 
+  // ── iOS app ──
+  const bundleIds = list(env.APPLE_BUNDLE_IDS);
+  const badBundle = bundleIds.find((b) => !/^[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$/.test(b));
+  if (badBundle) errors.push(`APPLE_BUNDLE_IDS har en ugyldig bundle ID: ${badBundle} (for eksempel no.tikit.app).`);
+  if (bundleIds.length > 0 && !env.APPLE_TEAM_ID) warnings.push('APPLE_BUNDLE_IDS er satt, men APPLE_TEAM_ID mangler – universal links til iOS-appen blir ikke publisert.');
+  const appIds = env.APPLE_TEAM_ID ? bundleIds.map((b) => `${env.APPLE_TEAM_ID}.${b}`) : [];
+  const corsOrigins = list(env.APP_CORS_ORIGINS);
+  for (const o of corsOrigins) {
+    if (!/^[a-z][a-z0-9+.-]*:\/\/[^/]+$/.test(o)) errors.push(`APP_CORS_ORIGINS: «${o}» er ikke en opprinnelse (for eksempel capacitor://localhost).`);
+    else if (production && o.startsWith('http://') && !o.startsWith('http://localhost')) errors.push(`APP_CORS_ORIGINS: «${o}» bruker http i produksjon.`);
+  }
+
+  // ── App Review access ──
+  let review: NodeConfig['review'] = null;
+  if (env.REVIEW_LOGIN_EMAIL || env.REVIEW_LOGIN_CODE) {
+    if (!env.REVIEW_LOGIN_EMAIL || !env.REVIEW_LOGIN_CODE) warnings.push('App Review-tilgang er delvis satt opp: både REVIEW_LOGIN_EMAIL og REVIEW_LOGIN_CODE må settes.');
+    else if (env.REVIEW_LOGIN_CODE.length < 16) errors.push('REVIEW_LOGIN_CODE må være minst 16 tegn (lag en med: openssl rand -hex 12).');
+    else review = { email: env.REVIEW_LOGIN_EMAIL.toLowerCase(), code: env.REVIEW_LOGIN_CODE };
+    if (review && production) warnings.push('App Review-tilgang er PÅ. Slå den av (tøm REVIEW_LOGIN_CODE) når Apple er ferdig med gjennomgangen.');
+  }
+
   if (errors.length > 0) throw new Error(`Konfigurasjonen er ikke klar for oppstart:\n${errors.map((e) => `  • ${e}`).join('\n')}`);
-  return { env, production, publicUrl, sessionSecret, demoMode, vipps, warnings };
+  return {
+    env,
+    production,
+    publicUrl,
+    sessionSecret,
+    demoMode,
+    vipps,
+    native: { bundleIds, appIds, urlScheme: env.APP_URL_SCHEME, corsOrigins },
+    review,
+    warnings,
+  };
 }

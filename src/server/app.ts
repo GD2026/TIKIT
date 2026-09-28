@@ -3,6 +3,7 @@ import { AppError } from '../shared/errors';
 import type { Deps } from './context';
 import { contextMiddleware, csrfMiddleware, errorResponse, limit, sessionMiddleware, type AppEnv } from './middleware/core';
 import { authRoutes } from './routes/auth';
+import { nativeAuthRoutes } from './routes/nativeAuth';
 import { publicRoutes } from './routes/public';
 import { meRoutes } from './routes/me';
 import { buyingRoutes } from './routes/buying';
@@ -29,6 +30,7 @@ export function createApp(deps: Deps): Hono<AppEnv> {
 
   api.route('/', publicRoutes(deps));
   api.route('/auth', authRoutes(deps));
+  api.route('/auth', nativeAuthRoutes(deps));
   api.route('/me', meRoutes(deps));
   api.route('/', buyingRoutes(deps));
   api.route('/org', orgRoutes(deps));

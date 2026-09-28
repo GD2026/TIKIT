@@ -1,5 +1,5 @@
 import type { PaymentMethodId, ProviderId } from '../shared/types';
-import type { Logger, Mailer, OAuthAdapter, PaymentAdapter, WalletAdapter } from './adapters/types';
+import type { AppleNativeAdapter, Logger, Mailer, OAuthAdapter, PaymentAdapter, WalletAdapter } from './adapters/types';
 import type { Store } from './store/types';
 
 export interface ServerConfig {
@@ -19,6 +19,13 @@ export interface ServerConfig {
   operatorName?: string;
   operatorOrgNumber?: string | null;
   supportEmail?: string | null;
+  /**
+   * The iOS app (Capacitor): the URL scheme logins hand back to (`tikit://auth/callback?code=…`) and the
+   * web view origins (capacitor://localhost) allowed to call the API with a bearer token.
+   */
+  native?: { urlScheme: string; trustedOrigins: string[] };
+  /** App Review access: a code that signs in as one pre-created account. Null/absent when off. */
+  review?: { email: string; code: string } | null;
 }
 
 export interface Deps {
@@ -30,6 +37,8 @@ export interface Deps {
   mailer: Mailer;
   log: Logger;
   wallet: WalletAdapter | null;
+  /** Native Sign in with Apple (iOS app) and revoking Apple grants. Null when Apple keys aren't set up. */
+  appleNative?: AppleNativeAdapter | null;
   /** Resolves the client IP for rate limiting. */
   clientIp: (req: Request, raw?: unknown) => string;
 }

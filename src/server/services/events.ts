@@ -63,6 +63,8 @@ export interface EventQuery {
   sort?: 'date' | 'popular';
   limit?: number;
   includePast?: boolean;
+  /** Organizers the viewer has blocked (services/moderation.ts). */
+  excludeOrganizerIds?: ReadonlySet<string>;
 }
 
 async function cardsFor(tx: Tx, deps: Deps, events: EventDoc[]): Promise<{ card: EventCard; sold: number; capacity: number }[]> {
@@ -116,7 +118,8 @@ export async function listEvents(deps: Deps, query: EventQuery = {}): Promise<Ev
   const nowS = now.toISOString();
   return deps.store.read(async (tx) => {
     let events = await tx.find('events', { status: 'published' });
-    events = events.filter((e) => e.visibility === 'public' && (query.includePast || e.endsAt > nowS));
+    const blocked = query.excludeOrganizerIds;
+    events = events.filter((e) => e.visibility === 'public' && !e.takedown && !blocked?.has(e.organizerId) && (query.includePast || e.endsAt > nowS));
     const orgs = await tx.getMany(
       'organizers',
       [...new Set(events.map((e) => e.organizerId))],
@@ -163,8 +166,8 @@ export interface HomeSection {
  * The Discover page, kept short on purpose: a few featured events, ticket drops that open soon,
  * news from organizers you follow, then everything else by date. A chosen city filters all of it.
  */
-export async function getHome(deps: Deps, viewer: User | null, city: string | null): Promise<HomeSection[]> {
-  const everywhere = await listEvents(deps, { limit: 200 });
+export async function getHome(deps: Deps, viewer: User | null, city: string | null, blocked: ReadonlySet<string> = new Set()): Promise<HomeSection[]> {
+  const everywhere = await listEvents(deps, { limit: 200, excludeOrganizerIds: blocked });
   const all = city ? everywhere.filter((e) => searchNormalize(e.city) === searchNormalize(city)) : everywhere;
   const now = deps.clock();
   const sections: HomeSection[] = [];
@@ -628,6 +631,7 @@ export async function publishEvent(deps: Deps, user: User, organizerId: string, 
     const event = await tx.get('events', eventId, { forUpdate: true });
     if (!event || event.organizerId !== organizerId) throw new AppError('not_found');
     if (event.status === 'cancelled') throw new AppError('event_cancelled');
+    if (event.takedown) throw new AppError('forbidden', { message: 'Arrangementet er skjult av TIKIT og kan ikke publiseres. Ta kontakt med oss.' });
     if (event.endsAt <= now) throw new AppError('event_ended');
     const types = await loadTicketTypes(tx, eventId);
     if (types.length === 0) throw new AppError('publish_incomplete');

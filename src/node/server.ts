@@ -14,10 +14,16 @@ import { isSeeded, seedDemoData } from '../server/seed';
 import { runCron } from '../server/services/misc';
 import { formatDateLong, formatTime } from '../shared/time';
 import type { NodeConfig } from './config';
-import { SqlStore, createPgliteDriver, createPostgresDriver, migrate, type SqlDriver } from './sqlStore';
-import { createAppleLogin, createGoogleLogin, createVippsLogin } from './oauth';
-import { createStripePayments, createVippsPayments } from './payments';
-import { createResendMailer } from './mailer';
+import { SqlStore, createPgliteDriver, createPostgresDriver, migrate, type SqlDriver } from './db/sqlStore';
+import { databaseSetup } from './db/connection';
+import { createVippsLogin } from './integrations/vipps/login';
+import { createVippsPayments } from './integrations/vipps/payments';
+import { createGoogleLogin } from './integrations/google/login';
+import { createAppleLogin } from './integrations/apple/login';
+import { createAppleNative } from './integrations/apple/native';
+import { createStripePayments } from './integrations/stripe/payments';
+import { createResendMailer } from './integrations/resend/mailer';
+import { appReturnPage, appleAppSiteAssociation, nativeCors } from './appLinks';
 import { securityHeaders } from './security';
 
 export interface TikitServer {
@@ -98,9 +104,11 @@ export async function createTikitServer(cfg: NodeConfig, log: Logger): Promise<T
   // ── Database ────────────────────────────────────────────────────────────
   let driver: SqlDriver;
   if (env.DATABASE_URL) {
-    const ssl = env.DATABASE_SSL === 'require' ? 'require' : env.DATABASE_SSL === 'prefer' ? 'prefer' : env.DATABASE_SSL === 'disable' ? false : undefined;
-    driver = await createPostgresDriver(env.DATABASE_URL, { max: env.DATABASE_POOL_MAX, ssl });
-    log.info('Database: Postgres');
+    // Supabase, Render, Neon or any Postgres 14+: provider-specific defaults in db/connection.ts.
+    const db = databaseSetup(env.DATABASE_URL, env);
+    for (const w of db.warnings) log.warn(w);
+    driver = await createPostgresDriver(env.DATABASE_URL, db.options);
+    log.info(`Database: ${db.description}`);
   } else {
     if (cfg.production) log.warn('DATABASE_URL mangler – bruker innebygd PGlite. Greit for testing, men bruk Postgres i drift.');
     const dir = path.resolve(env.DATA_DIR, 'pglite');
@@ -125,6 +133,8 @@ export async function createTikitServer(cfg: NodeConfig, log: Logger): Promise<T
     operatorName: env.OPERATOR_NAME ?? 'TIKIT',
     operatorOrgNumber: env.OPERATOR_ORG_NUMBER,
     supportEmail: env.SUPPORT_EMAIL,
+    native: { urlScheme: cfg.native.urlScheme, trustedOrigins: cfg.native.corsOrigins },
+    review: cfg.review,
   };
 
   // ── Identity providers ──────────────────────────────────────────────────
@@ -146,6 +156,12 @@ export async function createTikitServer(cfg: NodeConfig, log: Logger): Promise<T
     const a = { clientId: env.APPLE_CLIENT_ID, teamId: env.APPLE_TEAM_ID, keyId: env.APPLE_KEY_ID, privateKey: env.APPLE_PRIVATE_KEY };
     oauth.apple = lazyOAuth('apple', 'form_post', () => createAppleLogin(a, log), log);
   }
+
+  // Native Sign in with Apple (iOS app) and revoking Apple grants on account deletion need only the key.
+  const appleNative =
+    env.APPLE_TEAM_ID && env.APPLE_KEY_ID && env.APPLE_PRIVATE_KEY
+      ? createAppleNative({ teamId: env.APPLE_TEAM_ID, keyId: env.APPLE_KEY_ID, privateKey: env.APPLE_PRIVATE_KEY, bundleIds: cfg.native.bundleIds }, log)
+      : null;
 
   // ── Payments ────────────────────────────────────────────────────────────
   const payments: Partial<Record<PaymentMethodId, PaymentAdapter>> = {};
@@ -176,6 +192,7 @@ export async function createTikitServer(cfg: NodeConfig, log: Logger): Promise<T
     mailer,
     log,
     wallet: null,
+    appleNative,
     clientIp: clientIpResolver(env.TRUST_PROXY, env.CLIENT_IP_HEADER?.toLowerCase() ?? null),
   };
 
@@ -229,6 +246,13 @@ export async function createTikitServer(cfg: NodeConfig, log: Logger): Promise<T
   const api = createApp(deps);
   const app = new Hono();
   app.use('*', securityHeaders({ production: cfg.production, https: config.cookieSecure }));
+  // ── iOS app: universal links, return page after payment, CORS for the app's web view ─────────────
+  const appLinks = { appIds: cfg.native.appIds, urlScheme: cfg.native.urlScheme, corsOrigins: cfg.native.corsOrigins };
+  app.get('/.well-known/apple-app-site-association', (c) =>
+    cfg.native.appIds.length ? c.json(appleAppSiteAssociation(appLinks), 200, { 'Cache-Control': 'public, max-age=3600' }) : c.text('Fant ikke siden.', 404),
+  );
+  app.get('/app/*', (c) => appReturnPage(c, appLinks));
+  app.use('/api/*', nativeCors(cfg.native.corsOrigins));
   app.get('/healthz', async (c) => {
     try {
       await driver.query('SELECT 1');

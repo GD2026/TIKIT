@@ -12,6 +12,8 @@ export interface ExternalProfile {
   birthdate: string | null; // YYYY-MM-DD
   birthdateVerified: boolean;
   demo: boolean;
+  /** A grant that must be revoked at the provider when the account is deleted (Sign in with Apple). */
+  revocation?: { clientId: string; token: string } | null;
 }
 
 /** Data kept in a signed cookie between redirect and callback. */
@@ -27,6 +29,11 @@ export interface OAuthTransaction {
    * callback is a cross-site POST, which doesn't carry the (SameSite=Lax) session cookie.
    */
   linkUserId?: string | null;
+  /**
+   * Set when the login was started by the iOS app: the PKCE-style challenge the finished login is bound to.
+   * The callback then hands back a one-time code (tikit://auth/callback?code=…) instead of a cookie.
+   */
+  native?: string | null;
   createdAt: number;
 }
 
@@ -75,6 +82,25 @@ export interface PaymentAdapter {
    * otherwise the provider reference it concerns – or `providerRef: null` for events we don't need.
    */
   handleWebhook?(request: Request, rawBody: string): Promise<{ providerRef: string | null } | null>;
+}
+
+/** Input from the iOS app's native Sign in with Apple button (see src/node/integrations/apple/native.ts). */
+export interface AppleNativeInput {
+  identityToken: string;
+  authorizationCode: string | null;
+  /** SHA-256 (hex) of the server-issued nonce, as the app passed it to Apple. */
+  expectedNonceHash: string;
+  givenName: string | null;
+  familyName: string | null;
+}
+
+export interface AppleNativeAdapter {
+  /** True when the iOS app's native button can be used (bundle ID configured); revoking works regardless. */
+  readonly nativeSignIn: boolean;
+  /** Verifies the identity token and returns the profile. Throws when the token is invalid. */
+  verify(input: AppleNativeInput): Promise<ExternalProfile>;
+  /** Revokes a refresh token at Apple (account deletion, unlinking Apple). */
+  revoke(clientId: string, token: string): Promise<void>;
 }
 
 export interface MailMessage {

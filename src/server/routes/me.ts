@@ -9,6 +9,7 @@ import { deleteAccount, exportUserData, getMe, unlinkIdentity, updateProfile } f
 import { listFavorites } from '../services/events';
 import { listMyOrders } from '../services/orders';
 import { listNotifications, markNotificationsRead } from '../services/misc';
+import { listBlocked } from '../services/moderation';
 import type { Deps } from '../context';
 
 export function meRoutes(deps: Deps): Hono<AppEnv> {
@@ -31,6 +32,8 @@ export function meRoutes(deps: Deps): Hono<AppEnv> {
     if (!user) return c.json({ me: null, scanner: null });
     return c.json({ me: await getMe(deps, user.id), scanner: null });
   });
+
+  app.get('/blocked', async (c) => c.json({ organizers: await listBlocked(deps, requireUser(c).id) }));
 
   app.patch('/', async (c) => {
     const user = requireUser(c);

@@ -261,6 +261,8 @@ export const orderPaySchema = z
     method: z.enum(['vipps', 'card', 'free']),
     phone: phoneSchema.nullable().optional(),
     acceptTerms: z.literal(true, { error: 'Du må godta kjøpsvilkårene.' }),
+    /** 'ios' when paying from the iOS app: the provider returns the buyer to the app (universal link). */
+    client: z.enum(['web', 'ios']).optional(),
   })
   .strict();
 
@@ -361,3 +363,25 @@ export const organizerReviewSchema = z
 export const payoutCreateSchema = z
   .object({ amountOre: ore.min(1), reference: text(60, 1, 'Referanse'), note: text(200, 0, 'Notat').default('') })
   .strict();
+
+// ── Moderation (App Store Review Guideline 1.2) ───────────────────────────
+export const REPORT_REASONS = ['offensive', 'fraud', 'illegal', 'misleading', 'other'] as const;
+
+export const reportCreateSchema = z
+  .object({
+    kind: z.enum(['event', 'organizer']),
+    targetId: id,
+    reason: z.enum(REPORT_REASONS),
+    message: text(1000, 0, 'Beskrivelsen').default(''),
+  })
+  .strict();
+export type ReportCreateInput = z.infer<typeof reportCreateSchema>;
+
+export const reportResolveSchema = z
+  .object({
+    /** dismiss: nothing wrong. resolve: handled outside TIKIT. takedown: hide the event. suspend: close the organizer. */
+    action: z.enum(['dismiss', 'resolve', 'takedown', 'suspend']),
+    note: text(300, 0, 'Notat').default(''),
+  })
+  .strict();
+export type ReportResolveInput = z.infer<typeof reportResolveSchema>;

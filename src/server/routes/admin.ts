@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
-import { organizerReviewSchema, payoutCreateSchema, platformSettingsSchema } from '../../shared/schemas';
+import { organizerReviewSchema, payoutCreateSchema, platformSettingsSchema, reportResolveSchema } from '../../shared/schemas';
 import { body, requireUser, type AppEnv } from '../middleware/core';
 import {
   adminEvents,
@@ -14,6 +14,7 @@ import {
   setUserBanned,
   updatePlatformSettings,
 } from '../services/admin';
+import { listReports, resolveReport, restoreEvent } from '../services/moderation';
 import type { Deps } from '../context';
 
 export function adminRoutes(deps: Deps): Hono<AppEnv> {
@@ -36,6 +37,20 @@ export function adminRoutes(deps: Deps): Hono<AppEnv> {
   app.post('/users/:id/ban', async (c) => {
     const { banned } = await body(c, z.object({ banned: z.boolean() }).strict());
     await setUserBanned(deps, requireUser(c), c.req.param('id'), banned);
+    return c.json({ ok: true });
+  });
+  // ── Moderation queue (App Store Review Guideline 1.2) ────────────────────
+  app.get('/reports', async (c) => {
+    const status = c.req.query('status');
+    const valid = status === 'open' || status === 'resolved' || status === 'dismissed' ? status : null;
+    return c.json({ reports: await listReports(deps, requireUser(c), valid) });
+  });
+  app.post('/reports/:id/resolve', async (c) => {
+    await resolveReport(deps, requireUser(c), c.req.param('id'), await body(c, reportResolveSchema));
+    return c.json({ ok: true });
+  });
+  app.post('/events/:id/restore', async (c) => {
+    await restoreEvent(deps, requireUser(c), c.req.param('id'));
     return c.json({ ok: true });
   });
   app.get('/settings', async (c) => c.json(await getPlatformSettings(deps, requireUser(c))));

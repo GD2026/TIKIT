@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { MemoryStore } from '../../src/server/store/memory';
 import { DocNotFound, UniqueViolation, type Store } from '../../src/server/store/types';
-import { SqlStore, createPgliteDriver, createPostgresDriver, migrate } from '../../src/node/sqlStore';
+import { SqlStore, createPgliteDriver, createPostgresDriver, migrate } from '../../src/node/db/sqlStore';
 import type { Identity, KvDoc, Ticket } from '../../src/shared/types';
 
 /**

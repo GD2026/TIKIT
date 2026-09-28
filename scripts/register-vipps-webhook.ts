@@ -4,7 +4,7 @@
  * Uses PUBLIC_URL and the VIPPS_* variables from .env (or the environment).
  */
 import { existsSync } from 'node:fs';
-import { createVippsTokenSource, VIPPS_SYSTEM_HEADERS } from '../src/node/vippsCommon';
+import { createVippsTokenSource, VIPPS_SYSTEM_HEADERS } from '../src/node/integrations/vipps/common';
 import { loadConfig } from '../src/node/config';
 
 if (existsSync('.env')) process.loadEnvFile('.env');

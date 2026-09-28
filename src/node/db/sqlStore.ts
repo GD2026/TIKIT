@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { CATEGORY_IDS } from '../shared/constants';
+import { CATEGORY_IDS } from '../../shared/constants';
 import {
   COLLECTIONS,
   DocNotFound,
@@ -13,7 +13,7 @@ import {
   type Store,
   type Tx,
   type Where,
-} from '../server/store/types';
+} from '../../server/store/types';
 
 /**
  * Postgres-backed document store (Postgres 14+ or PGlite).
@@ -82,10 +82,13 @@ function schemaStatements(): string[] {
   // Useful sort keys.
   out.push(`CREATE INDEX IF NOT EXISTS tikit_events_starts ON tikit_events ((data->>'startsAt'))`);
   out.push(`CREATE INDEX IF NOT EXISTS tikit_orders_created ON tikit_orders ((data->>'createdAt'))`);
+  // Supabase publishes every table in `public` through its REST API (anon/authenticated roles). Row level
+  // security without policies shuts that door; the server connects as the table owner, which RLS doesn't apply to.
+  for (const t of ['tikit_meta', ...COLLECTIONS.map(tableName)]) out.push(`ALTER TABLE ${t} ENABLE ROW LEVEL SECURITY`);
   return out;
 }
 
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 
 async function storedFingerprint(q: Queryable): Promise<string | null> {
   const r = await q.query(`SELECT value FROM tikit_meta WHERE key = 'schema'`);
@@ -385,17 +388,28 @@ export class SqlStore implements Store {
 // ── Drivers ──────────────────────────────────────────────────────────────────
 
 /** postgres.js driver (production: Neon, Supabase, Render, RDS, …). */
-export async function createPostgresDriver(url: string, opts: { max?: number; ssl?: boolean | 'require' | 'prefer' } = {}): Promise<SqlDriver> {
+export interface PostgresOptions {
+  max?: number;
+  ssl?: boolean | 'require' | 'prefer' | { ca: string };
+  /**
+   * Named prepared statements. Must be off behind a transaction-mode pooler (Supabase port 6543, PgBouncer),
+   * which hands every transaction a different server connection.
+   */
+  prepare?: boolean;
+}
+
+export async function createPostgresDriver(url: string, opts: PostgresOptions = {}): Promise<SqlDriver> {
   const { default: postgres } = await import('postgres');
+  const ssl = opts.ssl === undefined ? undefined : opts.ssl === true ? 'require' : opts.ssl === false ? false : typeof opts.ssl === 'object' ? { ca: opts.ssl.ca, rejectUnauthorized: true } : opts.ssl;
   const sql = postgres(url, {
     max: opts.max ?? 10,
     idle_timeout: 30,
     connect_timeout: 15,
-    ssl: opts.ssl === undefined ? undefined : opts.ssl === true ? 'require' : opts.ssl === false ? false : opts.ssl,
+    ssl,
     onnotice: () => {},
     // JSON parameters are sent as text and cast in SQL ($1::text::jsonb): the driver must never
     // re-serialize them (a jsonb-typed parameter would be JSON-encoded a second time).
-    prepare: true,
+    prepare: opts.prepare ?? true,
   });
   const wrap = (runner: { unsafe: (q: string, p?: never[]) => Promise<unknown> }): Queryable => ({
     async query(text, params = []) {

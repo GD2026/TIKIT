@@ -8,6 +8,7 @@ import type { ProviderId } from '../../shared/types';
 import type { ExternalProfile, OAuthTransaction } from '../adapters/types';
 import { OAUTH_COOKIE, SESSION_COOKIE, body, limit, requireUser, safeReturnTo, type AppEnv, type Ctx } from '../middleware/core';
 import { signToken, verifyToken } from '../services/common';
+import { createLinkHandoff, createLoginHandoff, isChallenge } from '../services/nativeAuth';
 import { createSession, destroySession, getMe, loginWithProfile } from '../services/users';
 import type { Deps } from '../context';
 
@@ -93,7 +94,20 @@ export function authRoutes(deps: Deps): Hono<AppEnv> {
     const adapter = deps.oauth[provider];
     if (!adapter) return c.redirect(loginErrorRedirect(deps, 'provider_unavailable'));
     const mode = c.req.query('mode') === 'link' ? 'link' : 'login';
-    if (mode === 'link' && !c.get('user')) return c.redirect(loginErrorRedirect(deps, 'unauthorized'));
+    // Started by the iOS app (see services/nativeAuth.ts). The app has no cookie here: linking proves who it is
+    // with a short-lived ticket bound to the same challenge.
+    const native = c.req.query('native');
+    if (native !== undefined && !isChallenge(native)) throw new AppError('bad_request');
+    let linkUserId: string | null = null;
+    if (mode === 'link') {
+      if (native) {
+        const ticket = await verifyToken<{ u: string; c: string }>(deps.config.sessionSecret, 'native-link', c.req.query('linkTicket'), deps.clock().getTime());
+        linkUserId = ticket && ticket.c === native ? ticket.u : null;
+      } else {
+        linkUserId = c.get('user')?.id ?? null;
+      }
+      if (!linkUserId) return c.redirect(loginErrorRedirect(deps, 'unauthorized'));
+    }
     const txn: OAuthTransaction = {
       provider,
       state: newToken(24),
@@ -101,7 +115,8 @@ export function authRoutes(deps: Deps): Hono<AppEnv> {
       codeVerifier: adapter.usesPkce ? newToken(48) : null,
       returnTo: safeReturnTo(c.req.query('returnTo'), mode === 'link' ? '/profil/innlogging' : '/'),
       mode,
-      linkUserId: mode === 'link' ? (c.get('user')?.id ?? null) : null,
+      linkUserId,
+      native: native ?? null,
       createdAt: deps.clock().getTime(),
     };
     let url: string;
@@ -130,6 +145,7 @@ export function authRoutes(deps: Deps): Hono<AppEnv> {
     deleteCookie(c, OAUTH_COOKIE, { path: '/api/auth', secure: deps.config.cookieSecure });
     const txn = await verifyToken<OAuthTransaction & Record<string, unknown>>(deps.config.sessionSecret, 'oauth', raw, deps.clock().getTime());
     if (!adapter || !txn || txn.provider !== provider) return c.redirect(loginErrorRedirect(deps, 'login_failed'));
+    if (txn.native) return nativeCallback(c, adapter, txn, txn.native);
     try {
       const profile = await adapter.finishAuthorization({ request: c.req.raw, redirectUri: redirectUri(deps, provider), txn });
       if (txn.mode === 'link') {
@@ -151,6 +167,25 @@ export function authRoutes(deps: Deps): Hono<AppEnv> {
       return c.redirect(loginErrorRedirect(deps, code), 303);
     }
   };
+  /** The iOS app's login ends here: a one-time code for the app instead of a cookie. */
+  const nativeCallback = async (c: Ctx, adapter: NonNullable<Deps['oauth'][ProviderId]>, txn: OAuthTransaction, challenge: string) => {
+    const back = (params: Record<string, string>) => `${deps.config.native?.urlScheme ?? 'tikit'}://auth/callback?${new URLSearchParams(params).toString()}`;
+    try {
+      const profile = await adapter.finishAuthorization({ request: c.req.raw, redirectUri: redirectUri(deps, txn.provider), txn });
+      const returnTo = safeReturnTo(txn.returnTo);
+      if (txn.mode === 'link') {
+        if (!txn.linkUserId) return c.redirect(back({ error: 'unauthorized' }), 303);
+        return c.redirect(back({ code: await createLinkHandoff(deps, { linkUserId: txn.linkUserId, profile, challenge, returnTo }) }), 303);
+      }
+      const { user } = await loginWithProfile(deps, profile);
+      return c.redirect(back({ code: await createLoginHandoff(deps, { userId: user.id, challenge, returnTo }) }), 303);
+    } catch (err) {
+      const code = err instanceof AppError ? err.code : 'login_failed';
+      deps.log.warn('Innlogging i appen feilet', { provider: txn.provider, error: err instanceof Error ? err.message : String(err) });
+      return c.redirect(back({ error: code }), 303);
+    }
+  };
+
   app.get('/callback/:provider', limit('login-cb', 30, 60_000), callback);
   app.post('/callback/:provider', limit('login-cb', 30, 60_000), callback);
 

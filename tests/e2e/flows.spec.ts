@@ -5,7 +5,7 @@ import AxeBuilder from '@axe-core/playwright';
 async function expectAccessible(page: Page, context: string) {
   // Toasts fade in and out; mid-animation axe measures half-transparent text and reports low contrast.
   await expect
-    .poll(() => page.locator('[data-toast]').evaluateAll((els) => els.every((el) => getComputedStyle(el).opacity === '1')))
+    .poll(() => page.locator('[data-toast]').evaluateAll((els) => els.every((el) => el.ownerDocument.defaultView?.getComputedStyle(el).opacity === '1')))
     .toBe(true);
   const results = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])

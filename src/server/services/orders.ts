@@ -470,7 +470,7 @@ export async function payOrder(
   deps: Deps,
   user: User,
   orderId: string,
-  input: { method: 'vipps' | 'card' | 'free'; phone?: string | null | undefined },
+  input: { method: 'vipps' | 'card' | 'free'; phone?: string | null | undefined; client?: 'web' | 'ios' | undefined },
 ): Promise<{ order: Order; redirectUrl: string | null }> {
   const now = deps.clock();
   const nowS = now.toISOString();
@@ -551,7 +551,10 @@ export async function payOrder(
   if ('free' in prepared) return { order: prepared.order, redirectUrl: null };
 
   const { payment, order, event, adapter } = prepared;
-  const returnUrl = appLink(deps.config, `/ordre/${order.id}?retur=1`);
+  // From the iOS app the provider sends the buyer to /app/…: a universal link that opens the app again
+  // (with a small "back to the app" page as fallback, see src/node/appLinks.ts).
+  const prefix = input.client === 'ios' && deps.config.linkStyle === 'path' ? '/app' : '';
+  const returnUrl = appLink(deps.config, `${prefix}/ordre/${order.id}?retur=1`);
   try {
     const created = await adapter.createPayment({
       paymentId: payment.id,
@@ -559,7 +562,7 @@ export async function payOrder(
       amountOre: order.totalOre,
       description: `${event.title} – ${order.ref}`.slice(0, 95),
       returnUrl,
-      cancelUrl: appLink(deps.config, `/kasse/${order.id}?avbrutt=1`),
+      cancelUrl: appLink(deps.config, `${prefix}/kasse/${order.id}?avbrutt=1`),
       customerPhone: input.phone ?? user.phone,
       customerEmail: user.email,
       lines: [
