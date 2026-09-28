@@ -158,6 +158,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             {items.map((t) => (
               <motion.div
                 key={t.id}
+                data-toast
                 role={t.tone === 'error' ? 'alert' : 'status'}
                 initial={{ opacity: 0, y: -16, scale: 0.96 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}

@@ -3,6 +3,10 @@ import AxeBuilder from '@axe-core/playwright';
 
 /** Serious and critical WCAG 2.2 A/AA problems fail the test; the list is printed to make fixing easy. */
 async function expectAccessible(page: Page, context: string) {
+  // Toasts fade in and out; mid-animation axe measures half-transparent text and reports low contrast.
+  await expect
+    .poll(() => page.locator('[data-toast]').evaluateAll((els) => els.every((el) => getComputedStyle(el).opacity === '1')))
+    .toBe(true);
   const results = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
     // Brand marks (the Vipps logotype) are exempt from contrast requirements (WCAG 1.4.3 "Logotypes").
