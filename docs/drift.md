@@ -4,22 +4,25 @@ TIKIT er én Node-server som leverer både webappen og API-et. I drift trenger d
 
 ## Render
 
-Repoet har to Blueprints:
+Repoet har tre Blueprints:
 
 | Fil | Bruk | Kostnad |
 | --- | --- | --- |
 | `render.staging.yaml` | **Demo**: én gratis web-tjeneste, ingen database, ingen nøkler. All innlogging og betaling er simulert, og eksempeldata legges inn på nytt ved hver oppstart. | Gratis |
-| `render.yaml` | **Produksjon**: web-tjeneste + Postgres 16 i Frankfurt, databasen bare tilgjengelig internt. | Betalt (Render har ikke gratis Postgres) |
+| `render.supabase.yaml` | **Produksjon med Supabase**: web-tjeneste i Frankfurt. Databasen er Supabase (lim inn «Session pooler»-adressen, se [oppsett.md §1](oppsett.md#1-database-supabase)). | Render Starter + Supabase Pro (for backup) |
+| `render.yaml` | **Produksjon med Render Postgres**: web-tjeneste + Postgres 16 i Frankfurt, databasen bare tilgjengelig internt. | Betalt (Render har ikke gratis Postgres) |
 
 Oppsett: *New* → *Blueprint* → velg repoet. For demoen skriver du `render.staging.yaml` i feltet **Blueprint Path**.
 
 Produksjon:
 
-1. Opprett Blueprinten fra `render.yaml`. `SESSION_SECRET` og `CRON_SECRET` lages automatisk.
+1. Opprett Blueprinten fra `render.supabase.yaml` (Supabase) eller `render.yaml` (Render Postgres). `SESSION_SECRET` og `CRON_SECRET` lages automatisk.
 2. Fyll inn verdiene Render spør om – nøklene er beskrevet i [oppsett.md](oppsett.md).
 3. Koble domenet under *Settings* → *Custom Domains* og sett `PUBLIC_URL=https://ditt-domene` (uten `PUBLIC_URL` brukes `https://<tjeneste>.onrender.com`).
 4. Registrer Vipps-webhooken (`npm run vipps:webhook` lokalt med produksjonsnøklene) og legg inn `VIPPS_WEBHOOK_SECRET`.
-5. Slå på sikkerhetskopi av databasen.
+5. Slå på sikkerhetskopi av databasen (Render: betalt plan; Supabase: Pro-plan).
+6. Kjør `npm run doctor -- --online` lokalt med de samme verdiene, eller se loggen ved oppstart. Serveren skriver hvilke tjenester som er aktive.
+7. iOS-appen: sett `APPLE_BUNDLE_IDS` og sjekk at `https://<domene>/.well-known/apple-app-site-association` svarer (se [ios.md](ios.md)).
 
 **Serveren nekter å starte i produksjon** hvis noe som trengs for ekte salg mangler, og loggen sier nøyaktig hva:
 

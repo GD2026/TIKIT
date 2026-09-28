@@ -1,21 +1,25 @@
 # TIKIT – lansering
 
-*Oppdatert 24. september 2026*
+*Oppdatert 28. september 2026*
 
 | | Status |
 | --- | --- |
 | **Kode** | Klar for produksjon. Alle kontroller er grønne (se under). |
-| **Demo** | Live: <https://claude.ai/artifact/HxXzJv9BQJTE4x4pepNUna> – hele appen kjører i nettleseren, innlogging og betaling er simulert. |
-| **Render** | To Blueprints er klare: `render.staging.yaml` (gratis demo) og `render.yaml` (produksjon). Ikke publisert ennå – det krever at du er logget inn på GitHub og Render. |
-| **Ekte salg** | Venter på avtaler og nøkler som bare eieren kan skaffe (se «Det som gjenstår»). |
+| **GitHub** | `GD2026/TIKIT`, grenen `claude/tikit-ticket-solution-kog2ak` (med hele historikken) |
+| **Demo** | Live: <https://claude.ai/artifact/HxXzJv9BQJTE4x4pepNUna>. Hele appen kjører i nettleseren, og innlogging og betaling er simulert. |
+| **Render** | Tre Blueprints er klare: `render.staging.yaml` (gratis demo), `render.supabase.yaml` (produksjon med Supabase) og `render.yaml` (produksjon med Render Postgres). Ikke publisert ennå. |
+| **iOS-app** | Xcode-prosjektet i `ios/` er klart, men ikke kompilert (krever Mac). Se [docs/ios.md](docs/ios.md). |
+| **App Store** | Gjennomgått mot Apples retningslinjer, og det som manglet i koden, er bygget. Se [docs/app-store/](docs/app-store/README.md). |
+| **Ekte salg** | Venter på avtaler og nøkler som bare eieren kan skaffe (se «Det som gjenstår»). `npm run doctor` viser hva som mangler. |
 
-## Kontroller (kjørt 24.09.2026)
+## Kontroller (kjørt 28.09.2026)
 
 - TypeScript og ESLint: ingen feil
-- 81 enhets- og API-tester (minnelager)
-- 29 API-tester mot SQL-lageret – både innebygd PGlite og ekte Postgres 16
-- 18 ende-til-ende-tester i Chromium (iPhone lys, iPhone mørk, PC) med tilgjengelighetssjekk (axe)
-- Produksjonsbygget går gjennom
+- 104 enhets- og API-tester (minnelager), inkludert iOS-innlogging, Apple-innlogging og tilbakekalling, App Review-tilgang, moderering, Supabase-oppsett og konfigurasjon
+- API-testene mot SQL-lageret (PGlite)
+- 24 ende-til-ende-tester i Chromium (iPhone lys, iPhone mørk, PC) med tilgjengelighetssjekk (axe), og iOS-bygget kjørt mot API-et fra en annen opprinnelse (CORS, token, retur fra betaling, billett uten nett)
+- Produksjonsbygget og iOS-bygget (`vite --mode native`) går gjennom. Nettbygget inneholder ingen iOS-kode.
+- `npm audit`: 0 sårbarheter
 
 `./scripts/deploy.sh` kjører alt dette i riktig rekkefølge.
 
@@ -52,25 +56,23 @@ Sikkerhet, samsvar og full go/no-go-vurdering står i [docs/go-no-go.md](docs/go
 
 ## Det som gjenstår – bare du kan gjøre dette
 
-1. **Legg koden på GitHub.** Pakk ut `tikit.zip` (den har hele Git-historikken) og kjør:
-   ```bash
-   cd tikit
-   git remote add origin https://github.com/<ditt-brukernavn>/tikit.git   # lag et privat, tomt repo først
-   git push -u origin main
-   ```
-   Eller åpne mappen i GitHub Desktop og trykk *Publish repository* (velg *Private*).
+1. **GitHub:** ✅ gjort. Slå sammen grenen `claude/tikit-ticket-solution-kog2ak` til `main` når du er fornøyd (pull request på GitHub).
 2. **Demo på Render (gratis).** Logg inn på render.com med GitHub → *New* → *Blueprint* → velg `tikit`-repoet → skriv `render.staging.yaml` under *Blueprint Path* → *Apply*. Etter noen minutter ligger demoen på `https://tikit-demo.onrender.com` (eller lignende).
 3. **Vipps MobilePay.** Søk om nettbetaling og «Logg inn med Vipps» for Din Russetid AS (signeres med BankID), og hent produksjonsnøklene. Se [docs/oppsett.md](docs/oppsett.md) §1.
 4. **Domene.** For eksempel `tikit.no`: sjekk om det er ledig, kjøp det og koble det til Render.
 5. **Resend** for e-post: opprett konto og verifiser avsenderdomenet (DNS). Det er påkrevd i produksjon.
-6. **Produksjon på Render.** Opprett Blueprinten fra `render.yaml`. Den bruker betalte planer, så du må legge inn betalingskort hos Render. Fyll inn nøklene, registrer Vipps-webhooken og følg sjekklisten i [docs/drift.md](docs/drift.md).
-7. **Valgfritt:** Google-innlogging (gratis), Apple-innlogging (krever Apple Developer Program), Stripe for kort.
+6. **Database og produksjon på Render.** Med **Supabase:** lag prosjektet (Frankfurt, Pro-plan for backup) og bruk Blueprinten `render.supabase.yaml` (se [docs/oppsett.md §1](docs/oppsett.md#1-database-supabase)). Uten Supabase: `render.yaml`. Fyll inn nøklene, kjør `npm run doctor -- --online`, registrer Vipps-webhooken og følg sjekklisten i [docs/drift.md](docs/drift.md).
+7. **Google og Apple:** Google-innlogging er gratis. Apple-innlogging krever Apple Developer Program og er påkrevd for iOS-appen når Google tilbys. Stripe for kort er valgfritt.
+   - **iOS-appen:** Apple Developer (organisasjon), App ID med *Sign in with Apple* og *Associated Domains*, `APPLE_BUNDLE_IDS` på serveren, deretter `npm run ios` på Macen, TestFlight og innsending etter [docs/app-store/](docs/app-store/README.md).
 8. **Juridisk og regnskap.** Fyll inn adresse og support-e-post i `docs/juridisk/`, og få kjøpsvilkår og personvern gjennomgått av en rådgiver. Lag en arrangøravtale, godta databehandleravtalene hos Render og Resend, og avklar MVA på servicegebyret med regnskapsfører.
 9. **Første ekte test.** Gjør kjøp, refusjon, overføring, videresalg og innsjekk med ekte Vipps før dere åpner salget.
 
 `OPERATOR_NAME` og `OPERATOR_ORG_NUMBER` står allerede i Blueprintene (Din Russetid AS, 936 491 243). Endre dem der hvis et annet selskap skal stå som formidler.
 
 ## Kjente begrensninger (bevisst utsatt)
+
+- iOS-appen har ikke push-varsler ennå. Det er neste steg hvis Apple mener appen har for lite native funksjonalitet (4.2). Se [docs/ios.md](docs/ios.md#neste-steg).
+- Demobildene fra Higgsfield må lastes ned på en maskin med vanlig internett (`npm run demo:images`).
 
 - Grensen for antall forespørsler holdes i minnet per server-instans.
 - Betalingsjobber som gir opp etter ti forsøk vises i loggen og i admin-loggen (`payment_job.failed`), men har ennå ingen egen side i admin.

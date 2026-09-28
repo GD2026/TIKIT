@@ -173,3 +173,20 @@ Tester per 27.09.2026:
 - [Render Postgres: sikkerhetskopi og gjenoppretting](https://render.com/docs/postgresql-backups)
 - [Apple App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/)
 - [Google Play: Payments policy](https://support.google.com/googleplay/android-developer/answer/10281818?hl=en)
+
+## Oppdatering 28. september 2026: iOS-app og App Store
+
+TIKIT har nå en iOS-app (Capacitor, `ios/`) i tillegg til nettappen. Den er gjennomgått punkt for punkt mot Apples retningslinjer fra 8. juni 2026 (safaiyeh/app-store-review-skill). Rapporten står i [app-store/README.md](app-store/README.md).
+
+| | Status |
+| --- | --- |
+| 1.2 Brukerskapt innhold (rapportering, blokkering, fjerning) | ✅ bygget og testet |
+| 2.1 Innlogging for App Review | ✅ tilgangskode (av som standard) |
+| 3.1.3(e) Betaling utenfor kjøp i appen | ✅ Vipps og kort, riktig for fysiske arrangementer |
+| 4.8 Sign in with Apple | ✅ innebygd i appen |
+| 5.1.1(v) Sletting av konto, med tilbakekalling hos Apple | ✅ |
+| 5.1.2 Personvernmanifest og App Privacy | ✅ ingen sporing |
+| 4.2 Minimum funksjonalitet | ⚠️ hybridapp. Push-varsler er neste steg hvis Apple avviser. |
+| Kompilert i Xcode | ⚠️ ikke ennå (krever Mac) |
+
+**Anbefaling for iOS:** GO for TestFlight når Xcode-bygget er gjort og testet på en ekte iPhone. GO for innsending når punktene i [app-store/README.md → Før du sender inn](app-store/README.md#før-du-sender-inn) er gjort.
