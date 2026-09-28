@@ -7,7 +7,7 @@ TIKIT for iPhone og iPad. Det er **samme React-app som nettsiden**, pakket i et 
 | `ios/` | Xcode-prosjektet. Egen Swift-kode: `ios/App/App/TikitNativePlugin.swift` (innlogging, «Logg på med Apple», nøkkelring) og `TikitBridgeViewController.swift` |
 | `src/web/native/` | TypeScript-laget: API med token, innlogging, betaling, dype lenker, frakoblede billetter, haptikk, delingsark |
 
-> **Status:** Prosjektet er generert og konfigurert, og web-laget er testet i Chromium (`tests/e2e/ios-app.spec.ts`). Swift-koden er **ikke kompilert ennå**. Den ble skrevet på Linux, der Xcode ikke finnes. Første bygg på Macen kan gi små feil som Xcode peker rett på.
+> **Status:** Appen **kompilerer uten feil og advarsler** med Xcode 26.6 (Release, iOS-enhet, uten signering). Det sjekker GitHub Actions (`.github/workflows/ios.yml`) hver gang `ios/` eller pakkene endres. Web-laget er testet i Chromium (`tests/e2e/ios-app.spec.ts`). Det som gjenstår, er å kjøre appen på en ekte iPhone med signering (sjekklisten i §4).
 
 ## Det du trenger
 

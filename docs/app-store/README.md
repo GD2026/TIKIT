@@ -9,7 +9,7 @@
 | **Klar for innsending** | Koden: ja. Alt som kunne løses i koden, er løst og testet. |
 | **Gjenstår før innsending** | Bare ting du må gjøre i Apple Developer og App Store Connect – se [Før du sender inn](#før-du-sender-inn). |
 | **Største risiko** | 4.2 (minimum funksjonalitet): appen er en hybridapp (React i WKWebView). Den har ekte native funksjoner, men anmeldere kan være strenge. Se [4.2](#42-minimum-funksjonalitet). |
-| **Ikke testet** | Selve iOS-bygget i Xcode. Swift-koden er skrevet og gjennomgått, men kan ikke kompileres på Linux der dette ble laget. Første bygg på en Mac kan gi små kompileringsfeil. Se [docs/ios.md](../ios.md). |
+| **Ikke testet** | Appen på en ekte iPhone. Den kompilerer uten feil med Xcode 26.6 (GitHub Actions, `.github/workflows/ios.yml`), men innlogging, Vipps og kamera må prøves på telefonen. Se [docs/ios.md](../ios.md#4-test-på-telefonen). |
 
 **Forutsetning:** Før dette var TIKIT bare en nettapp (PWA). Nå finnes det også en iOS-app i `ios/`, bygget med Capacitor 8. Det er samme React-kode som på nettsiden, men pakket inn i appen, og med egen Swift-kode for innlogging, nøkkelring og «Logg på med Apple». Appen laster **ikke** nettsiden. Alle skjermene ligger i appen, og den henter bare data fra serveren.
 

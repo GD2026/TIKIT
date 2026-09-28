@@ -164,7 +164,8 @@ Prompten ba om en rapport per agent og et JSON-sammendrag, og sluttet med:
 - **Higgsfield:** 9 bilder til demoarrangementene (`z_image`) i prosjektet «TIKIT – demobilder». Nettverket i skyøkta slapp ikke til Higgsfields CDN, så bildene lastes ned med `npm run demo:images` på Macen.
 - **Obscura:** kunne ikke legges til fra skyøkta (ingen lokal maskin der). Kommandoen står i [utviklerverktoy.md](utviklerverktoy.md). Nettsøk ble gjort med de innebygde verktøyene.
 - **Tester:** 104 enhets- og API-tester (13 nye for iOS-innlogging, Apple, App Review og moderering, pluss konfigurasjon og Supabase), SQL-testene på PGlite og 24 ende-til-ende-tester. Av dem er 3 nye for moderering og 3 nye som kjører iOS-bygget mot API-et fra en annen opprinnelse.
-- **Ikke gjort:** iOS-appen er ikke kompilert. Det krever Xcode på en Mac. `samtale-vedlegg.md` fra forrige samtale var ikke med og kan legges til når du har den.
+- **GitHub Actions** (`.github/workflows/`): `ci.yml` kjører typer, lint, tester, API-flytene mot ekte Postgres 17 og Playwright på hver pull request. `ios.yml` kompilerer iOS-appen med Xcode 26.6 på macOS. Den første kjøringen var grønn på alle fire jobbene, og Swift-koden kompilerte uten feil og advarsler.
+- **Ikke gjort:** iOS-appen er ikke kjørt på en ekte iPhone. Det krever signering med Apple Developer-kontoen. `samtale-vedlegg.md` fra forrige samtale var ikke med og kan legges til når du har den.
 
 ## Valg som er tatt
 

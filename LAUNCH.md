@@ -8,7 +8,7 @@
 | **GitHub** | `GD2026/TIKIT`, grenen `claude/tikit-ticket-solution-kog2ak` (med hele historikken) |
 | **Demo** | Live: <https://claude.ai/artifact/HxXzJv9BQJTE4x4pepNUna>. Hele appen kjører i nettleseren, og innlogging og betaling er simulert. |
 | **Render** | Tre Blueprints er klare: `render.staging.yaml` (gratis demo), `render.supabase.yaml` (produksjon med Supabase) og `render.yaml` (produksjon med Render Postgres). Ikke publisert ennå. |
-| **iOS-app** | Xcode-prosjektet i `ios/` er klart, men ikke kompilert (krever Mac). Se [docs/ios.md](docs/ios.md). |
+| **iOS-app** | Xcode-prosjektet i `ios/` kompilerer uten feil med Xcode 26.6 (GitHub Actions på macOS). Neste steg er å signere og teste på en ekte iPhone. Se [docs/ios.md](docs/ios.md). |
 | **App Store** | Gjennomgått mot Apples retningslinjer, og det som manglet i koden, er bygget. Se [docs/app-store/](docs/app-store/README.md). |
 | **Ekte salg** | Venter på avtaler og nøkler som bare eieren kan skaffe (se «Det som gjenstår»). `npm run doctor` viser hva som mangler. |
 
