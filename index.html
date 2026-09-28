@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="nb">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>TIKIT</title>
+    <meta name="description" content="TIKIT – billetter til russetreff, fester, busslanseringer og revyer. Kjøp med Vipps, vis levende billett i appen." />
+    <meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="TIKIT" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta property="og:site_name" content="TIKIT" />
+    <meta property="og:title" content="TIKIT" />
+    <meta property="og:description" content="Billetter til russetreff, fester, busslanseringer og revyer." />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <style>
+      #boot {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f2f2f7;
+        z-index: 100;
+      }
+      #boot svg {
+        width: 72px;
+        height: 72px;
+        animation: tikit-boot 1.2s ease-in-out infinite;
+      }
+      @keyframes tikit-boot {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: scale(0.94);
+          opacity: 0.85;
+        }
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme='light']) #boot {
+          background: #000;
+        }
+      }
+      :root[data-theme='dark'] #boot {
+        background: #000;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #boot svg {
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="boot" aria-hidden="true">
+      <svg viewBox="0 0 64 64">
+        <defs>
+          <linearGradient id="bootg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#1B1464" />
+            <stop offset="0.62" stop-color="#3B4CF2" />
+            <stop offset="1" stop-color="#FF6FB5" />
+          </linearGradient>
+        </defs>
+        <rect width="64" height="64" rx="15" fill="url(#bootg)" />
+        <g transform="rotate(-14 32 32)">
+          <path d="M14 21a4 4 0 0 1 4-4h28a4 4 0 0 1 4 4v5a6 6 0 0 0 0 12v5a4 4 0 0 1-4 4H18a4 4 0 0 1-4-4v-5a6 6 0 0 0 0-12z" fill="#fff" />
+          <path d="M37 20v24" stroke="#3B4CF2" stroke-width="2.4" stroke-dasharray="2.6 3.2" stroke-linecap="round" />
+          <rect x="20" y="27" width="11" height="3.4" rx="1.7" fill="#1B1464" />
+          <rect x="20" y="33.6" width="7" height="3.4" rx="1.7" fill="#1B1464" opacity="0.45" />
+        </g>
+      </svg>
+    </div>
+    <div id="root"></div>
+    <noscript>TIKIT trenger JavaScript for å fungere.</noscript>
+    <script type="module" src="/src/web/main.tsx"></script>
+  </body>
+</html>

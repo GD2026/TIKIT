@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Universal links: https://<domain>/e/…, /app/… open the app. The server publishes the matching
+	     /.well-known/apple-app-site-association (src/node/appLinks.ts). Domain set by: npm run ios:configure -->
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:tikit.no</string>
+	</array>
+	<!-- Native «Logg på med Apple» (TikitNativePlugin.swift) – App Store Review Guideline 4.8. -->
+	<key>com.apple.developer.applesignin</key>
+	<array>
+		<string>Default</string>
+	</array>
+</dict>
+</plist>

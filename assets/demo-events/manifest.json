@@ -1,0 +1,14 @@
+{
+  "about": "Cover pictures for the demo events, generated with Higgsfield (model z_image, 2048×1536) in the project «TIKIT – demobilder». Download them with `npm run demo:images`; the server then uses them when it seeds demo data. Fictional scenes, no real people, no alcohol, no text or logos – fine for App Store screenshots (Guideline 2.3.8).",
+  "images": [
+    { "slug": "russetreff-vest", "job": "13c88a4b-2052-4136-a733-bb593c8544c0", "url": "https://d8j0ntlcm91z4.cloudfront.net/user_3JIEXXMoWy6xbEkpXF8snbMjyGW/hf_20260928_084836_13c88a4b-2052-4136-a733-bb593c8544c0.png" },
+    { "slug": "blatimen-busslansering", "job": "91c9ba0a-6fd5-4244-8f81-fa544188ccf4", "url": "https://d8j0ntlcm91z4.cloudfront.net/user_3JIEXXMoWy6xbEkpXF8snbMjyGW/hf_20260928_084949_91c9ba0a-6fd5-4244-8f81-fa544188ccf4.png" },
+    { "slug": "russerevyen-siste-skoledag", "job": "c022bcb0-22d0-4f3b-aba3-c03a30d04e09", "url": "https://d8j0ntlcm91z4.cloudfront.net/user_3JIEXXMoWy6xbEkpXF8snbMjyGW/hf_20260928_084836_c022bcb0-22d0-4f3b-aba3-c03a30d04e09.png" },
+    { "slug": "midnattsfest-pa-stranden", "job": "23387f81-46cf-425c-9e13-652340066496", "url": "https://d8j0ntlcm91z4.cloudfront.net/user_3JIEXXMoWy6xbEkpXF8snbMjyGW/hf_20260928_084901_23387f81-46cf-425c-9e13-652340066496.png" },
+    { "slug": "rodruss-rave-oslo", "job": "3292e498-3494-4afb-8694-d7b887dfc6db", "url": "https://d8j0ntlcm91z4.cloudfront.net/user_3JIEXXMoWy6xbEkpXF8snbMjyGW/hf_20260928_085010_3292e498-3494-4afb-8694-d7b887dfc6db.png" },
+    { "slug": "avgangsgalla-vg3", "job": "d0f710bf-bf44-4667-b95a-855726c0bf97", "url": "https://d8j0ntlcm91z4.cloudfront.net/user_3JIEXXMoWy6xbEkpXF8snbMjyGW/hf_20260928_085026_d0f710bf-bf44-4667-b95a-855726c0bf97.png" },
+    { "slug": "russecupen-i-fotball", "job": "04d393be-c8a3-4305-9155-9d19539e053a", "url": "https://d8j0ntlcm91z4.cloudfront.net/user_3JIEXXMoWy6xbEkpXF8snbMjyGW/hf_20260928_085047_04d393be-c8a3-4305-9155-9d19539e053a.png" },
+    { "slug": "nordfall-live", "job": "3fe8f083-6963-408a-ae08-6be3048bc850", "url": "https://d8j0ntlcm91z4.cloudfront.net/user_3JIEXXMoWy6xbEkpXF8snbMjyGW/hf_20260928_085110_3fe8f083-6963-408a-ae08-6be3048bc850.png" },
+    { "slug": "russedapen-2027", "job": "5da7f7d5-22c0-42ee-b3da-0782d9bfd999", "url": "https://d8j0ntlcm91z4.cloudfront.net/user_3JIEXXMoWy6xbEkpXF8snbMjyGW/hf_20260928_085127_5da7f7d5-22c0-42ee-b3da-0782d9bfd999.png" }
+  ]
+}

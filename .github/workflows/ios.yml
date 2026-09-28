@@ -1,0 +1,61 @@
+# Compiles the iOS app (Swift + Capacitor) on a Mac, unsigned. macOS minutes cost ten times Linux minutes
+# on private repositories, so this runs only when something the app is compiled from changes, or by hand
+# (Actions → iOS → Run workflow).
+name: iOS
+
+on:
+  pull_request:
+    paths:
+      - 'ios/**'
+      - 'capacitor.config.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'scripts/ios.mjs'
+      - '.github/workflows/ios.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'ios/**'
+      - 'capacitor.config.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'scripts/ios.mjs'
+      - '.github/workflows/ios.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    name: Kompiler iOS-appen
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Bygg web-delen og kopier den inn i Xcode-prosjektet
+        run: npm run ios:build
+        env:
+          TIKIT_API_ORIGIN: https://tikit.no
+      - run: xcodebuild -version
+      # Release for a generic device – the same build an App Store archive makes – without signing,
+      # so no Apple Developer certificates are needed here.
+      - name: Kompiler (Release, uten signering)
+        run: >-
+          xcodebuild build
+          -project ios/App/App.xcodeproj
+          -scheme App
+          -configuration Release
+          -destination 'generic/platform=iOS'
+          -derivedDataPath build/DerivedData
+          -quiet
+          CODE_SIGNING_ALLOWED=NO
