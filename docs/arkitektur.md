@@ -146,3 +146,12 @@ Eksempel: kjøperen trykker «Betal» i kassen.
 | `npm run test:sql` | API-flytene mot PGlite (eller ekte Postgres med `TIKIT_TEST_DATABASE_URL`) | `tests/api` |
 | `npm run test:e2e` | Playwright mot produksjonsbygget: nettsiden på tre enheter pluss iOS-laget | `tests/e2e` |
 | `./scripts/deploy.sh` | Alt over, i riktig rekkefølge | |
+
+### Automatisk på GitHub (GitHub Actions)
+
+| Arbeidsflyt | Når | Hva |
+| --- | --- | --- |
+| `.github/workflows/ci.yml` | Hver pull request og hver push til `main` | Tre jobber side om side: typer, lint og `npm test` · lageret og API-flytene mot **ekte Postgres 17** (samme driver som i drift) · produksjonsbygget og Playwright. Spor fra feilede e2e-tester lastes opp som `playwright-traces`. |
+| `.github/workflows/ios.yml` | Når `ios/`, `capacitor.config.ts`, `package*.json` eller `scripts/ios.mjs` endres, eller manuelt (*Actions* → *iOS* → *Run workflow*) | Bygger web-delen, kjører `cap sync` og kompilerer iOS-appen med Xcode på macOS (Release, uten signering). |
+
+Ingen av dem trenger hemmeligheter: alt kjører i demomodus. macOS-minutter koster ti ganger så mye som Linux-minutter på private repoer, og derfor kjører iOS-bygget bare når noe det bygges fra, endres.

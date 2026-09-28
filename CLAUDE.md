@@ -15,6 +15,8 @@ npm run ios                 # iOS: konfigurer Xcode fra .env, bygg mot PUBLIC_UR
 ./scripts/deploy.sh         # alt i riktig rekkefølge
 ```
 
+GitHub Actions: `.github/workflows/ci.yml` kjører typer, lint, tester, API-flytene mot ekte Postgres og Playwright på hver pull request. `ios.yml` kompilerer iOS-appen på macOS når `ios/` eller pakkene endres. Grønn CI er kravet før fletting.
+
 ## Kart
 
 - `src/shared/` – typer (`types.ts`), Zod-skjemaer (`schemas.ts`), konstanter, priser, QR. Brukes av alt.

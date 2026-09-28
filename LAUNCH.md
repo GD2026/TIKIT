@@ -16,12 +16,12 @@
 
 - TypeScript og ESLint: ingen feil
 - 104 enhets- og API-tester (minnelager), inkludert iOS-innlogging, Apple-innlogging og tilbakekalling, App Review-tilgang, moderering, Supabase-oppsett og konfigurasjon
-- API-testene mot SQL-lageret (PGlite)
+- API-testene mot SQL-lageret: PGlite, og mot ekte Postgres (43 flyttester og 33 lagringstester)
 - 24 ende-til-ende-tester i Chromium (iPhone lys, iPhone mørk, PC) med tilgjengelighetssjekk (axe), og iOS-bygget kjørt mot API-et fra en annen opprinnelse (CORS, token, retur fra betaling, billett uten nett)
 - Produksjonsbygget og iOS-bygget (`vite --mode native`) går gjennom. Nettbygget inneholder ingen iOS-kode.
 - `npm audit`: 0 sårbarheter
 
-`./scripts/deploy.sh` kjører alt dette i riktig rekkefølge.
+`./scripts/deploy.sh` kjører alt dette i riktig rekkefølge. **GitHub Actions** kjører det samme automatisk på hver pull request (`.github/workflows/ci.yml`, med ekte Postgres 17), og kompilerer iOS-appen på macOS når `ios/` endres (`ios.yml`).
 
 ## Hva gjennomgangen fant – og hva som er rettet
 

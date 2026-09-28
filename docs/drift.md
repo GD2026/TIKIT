@@ -24,6 +24,11 @@ Produksjon:
 6. Kjør `npm run doctor -- --online` lokalt med de samme verdiene, eller se loggen ved oppstart. Serveren skriver hvilke tjenester som er aktive.
 7. iOS-appen: sett `APPLE_BUNDLE_IDS` og sjekk at `https://<domene>/.well-known/apple-app-site-association` svarer (se [ios.md](ios.md)).
 
+**Rull bare ut kode som har bestått testene.** GitHub Actions kjører alle kontrollene på hver pull request og hver push til `main` (se [arkitektur.md](arkitektur.md#automatisk-på-github-github-actions)). To innstillinger gjør dem til en sperre:
+
+- **GitHub** → *Settings* → *Branches* (eller *Rules*) → regel for `main`: krev pull request og at kontrollene «Typer, lint og tester», «API-tester mot Postgres» og «Bygg og ende-til-ende-tester» er grønne.
+- **Render** → tjenesten → *Settings* → *Auto-Deploy*: velg at Render venter til GitHub-kontrollene er grønne («After CI Checks Pass»), i stedet for å rulle ut ved hver commit.
+
 **Serveren nekter å starte i produksjon** hvis noe som trengs for ekte salg mangler, og loggen sier nøyaktig hva:
 
 - `PUBLIC_URL` med https (eller Renders egen adresse) og `SESSION_SECRET` på minst 32 tegn

@@ -74,6 +74,8 @@ Den samme appen finnes også som ren nettleserdemo (hele API-et kjører i nettle
 | `npm run ios:build` / `ios:configure` | Bare bygget / bare konfigurasjonen |
 | `./scripts/deploy.sh` | Alle kontroller i riktig rekkefølge før utrulling |
 
+De samme kontrollene kjører automatisk på GitHub (`.github/workflows/`) på hver pull request, og iOS-appen kompileres på macOS når `ios/` endres.
+
 ## Oppsett og drift
 
 - **Hvor ligger hva, og hvor endrer jeg det:** [docs/arkitektur.md](docs/arkitektur.md)
