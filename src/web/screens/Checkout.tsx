@@ -18,7 +18,8 @@ import { TextField } from '../components/ui/Field';
 import { useConfirm, useToast } from '../components/ui/Overlays';
 import { CenterSpinner, QueryError, RequireLogin } from '../components/ui/States';
 import { useCountdown } from '../lib/hooks';
-import { followUrl } from '../lib/links';
+import { followUrl, isExternalUrl } from '../lib/links';
+import { isNativeApp } from '../lib/device';
 import { cn } from '../lib/cn';
 
 function VippsMark({ className }: { className?: string }) {
@@ -180,6 +181,7 @@ function CheckoutBody({ orderId }: { orderId: string }) {
         method: free ? 'free' : method,
         phone: method === 'vipps' ? (me?.phone ?? null) : null,
         acceptTerms: true,
+        ...(isNativeApp ? { client: 'ios' } : {}),
       });
       setOrder(res.order);
       if (res.order.status === 'paid') {
@@ -187,7 +189,17 @@ function CheckoutBody({ orderId }: { orderId: string }) {
         navigate(`/ordre/${order.id}?retur=1`, { replace: true });
         return;
       }
-      if (res.redirectUrl) followUrl(res.redirectUrl, navigate);
+      if (import.meta.env.MODE === 'native' && res.redirectUrl && isExternalUrl(res.redirectUrl)) {
+        // iOS app: Vipps opens in the Vipps app, cards in an in-app Safari sheet (src/web/native/payments.ts).
+        const { openPayment } = await import('../native/payments');
+        await openPayment(api, order.id, res.redirectUrl, {
+          paid: () => {
+            void qc.invalidateQueries({ queryKey: qk.tickets });
+            navigate(`/ordre/${order.id}?retur=1`, { replace: true });
+          },
+          stopped: () => void orderQ.refetch(),
+        });
+      } else if (res.redirectUrl) followUrl(res.redirectUrl, navigate);
     } catch (err) {
       if (err instanceof ApiError && (err.code === 'order_expired' || err.code === 'order_not_payable')) void orderQ.refetch();
       toast({ message: errorMessage(err), tone: 'error' });

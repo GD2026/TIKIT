@@ -1,6 +1,6 @@
 # TIKIT Terms of Purchase
 
-*Last updated 24 September 2026. English version of the Norwegian [kjopsvilkar.md](kjopsvilkar.md). If the two differ, the Norwegian version applies.*
+*Last updated 28 September 2026. English version of the Norwegian [kjopsvilkar.md](kjopsvilkar.md). If the two differ, the Norwegian version applies.*
 
 > **Before publishing:** fill in the [bracketed] fields and have an adviser review the text. It reflects how TIKIT actually works, but it is not legal advice.
 
@@ -52,6 +52,8 @@ You pay with Vipps or card. Card payments are handled by Stripe, and TIKIT never
 ## 8. Misuse
 
 We may block accounts and cancel purchases resulting from fraud, automated buying, buying for resale at a profit, or other misuse. The payment for a cancelled purchase is then refunded.
+
+**Content and reporting.** Only organizers approved by TIKIT can publish events. Content that is offensive, hateful, illegal, misleading or encourages harmful use of alcohol or drugs is not allowed. Anyone can report an event or an organizer in the app. We handle reports within 24 hours, remove content that breaks these terms and close organizers who do so repeatedly. You can also hide an organizer so its events are no longer shown to you.
 
 ## 9. Liability
 

@@ -1,6 +1,6 @@
 # TIKIT Cookie and Local Storage Policy
 
-*Last updated 24 September 2026. English version of [informasjonskapsler.md](informasjonskapsler.md).*
+*Last updated 28 September 2026.*
 
 TIKIT only stores what is **strictly necessary** to provide the service you ask for: signing in, buying, tickets that work offline, and the door scanner. That is exempt from the consent requirement in the Norwegian Electronic Communications Act § 3-15, so there is no consent banner. We use no tracking, analytics, advertising or third-party cookies.
 
@@ -31,3 +31,16 @@ TIKIT only stores what is **strictly necessary** to provide the service you ask 
 | `tikit-tickets` | Your tickets and who is signed in, so a ticket can be shown at the door offline | 14 days. Removed on sign-out or when someone else signs in. |
 
 You can clear all of this in your browser's site data settings. You will then be signed out, and tickets stored for offline use are gone until you open the app online again.
+
+## The iOS app
+
+The app does not use cookies for signing in. Instead:
+
+| Storage | What it holds | Duration |
+| --- | --- | --- |
+| iOS Keychain | Your sign-in (a random token), on this device only | Until you sign out or delete the app |
+| `tikit-offline:*` in the app | Your tickets and who is signed in, so a ticket can be shown at the door without coverage | 14 days. Removed when you sign out or someone else signs in. |
+| `tikit.installed` | A flag that the app is installed, so an old sign-in from before the app was deleted is not reused | Until you delete the app |
+
+The same settings as in the browser are used too (city, access codes, clock offset, scanner). You remove everything by signing out and deleting the app.
+

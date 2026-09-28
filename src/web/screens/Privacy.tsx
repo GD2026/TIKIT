@@ -12,7 +12,7 @@ import { Button } from '../components/ui/Button';
 import { RequireLogin } from '../components/ui/States';
 import { useConfirm, useToast } from '../components/ui/Overlays';
 import { copyText } from '../lib/share';
-import { canDownload } from '../lib/links';
+import { canDownload, saveTextFile } from '../lib/links';
 
 function PrivacyBody() {
   const api = useApi();
@@ -30,14 +30,7 @@ function PrivacyBody() {
       const text = JSON.stringify(data, null, 2);
       // The first check is resolved at build time, so the single-file demo ships without a download path.
       if (import.meta.env.MODE !== 'demo' && canDownload) {
-        const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'tikit-mine-data.json';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.setTimeout(() => URL.revokeObjectURL(url), 2000);
+        await saveTextFile('tikit-mine-data.json', text, 'application/json');
         toast({ message: 'Dataene er lastet ned', tone: 'success' });
       } else {
         setJson(text);

@@ -1,8 +1,21 @@
+type HapticKind = 'light' | 'success' | 'warning' | 'error';
+
+let nativeImpl: ((kind: HapticKind) => void) | null = null;
+
+/** The iOS app plugs in the Taptic Engine (src/web/native/device.ts). */
+export function setNativeHaptics(fn: (kind: HapticKind) => void): void {
+  nativeImpl = fn;
+}
+
 /**
- * Light haptic feedback. Android (Vibration API) vibrates; iOS Safari has no web haptics API,
- * so there we rely on the visual response alone.
+ * Light haptic feedback. In the iOS app it uses the Taptic Engine; in browsers Android (Vibration API)
+ * vibrates, while iOS Safari has no web haptics API, so there we rely on the visual response alone.
  */
-export function haptic(kind: 'light' | 'success' | 'warning' | 'error' = 'light'): void {
+export function haptic(kind: HapticKind = 'light'): void {
+  if (nativeImpl) {
+    nativeImpl(kind);
+    return;
+  }
   try {
     if (typeof navigator === 'undefined' || typeof navigator.vibrate !== 'function') return;
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;

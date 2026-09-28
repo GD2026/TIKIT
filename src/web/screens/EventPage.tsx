@@ -7,6 +7,7 @@ import {
   BellRing,
   CalendarDays,
   Check,
+  Flag,
   Heart,
   KeyRound,
   ListChecks,
@@ -44,6 +45,7 @@ import { appUrl, mapsUrl } from '../lib/links';
 import { shareLink } from '../lib/share';
 import { haptic } from '../lib/haptics';
 import { cn } from '../lib/cn';
+import { ReportSheet } from '../components/moderation/ReportSheet';
 
 type Selection = Record<string, number>;
 
@@ -290,6 +292,7 @@ export default function EventPage() {
   }, [qty, selectionKey]);
 
   const [unlockOpen, setUnlockOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const [resaleOpen, setResaleOpen] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [resaleBusy, setResaleBusy] = useState<string | null>(null);
@@ -710,8 +713,16 @@ export default function EventPage() {
         </div>
       </section>
 
+      {e.status === 'published' && (
+        <div className="mt-6 px-4 text-center">
+          <button type="button" onClick={() => setReportOpen(true)} className="inline-flex min-h-11 items-center gap-1.5 px-2 text-subhead text-label-2 underline-offset-2 hover:underline">
+            <Flag className="h-4 w-4" aria-hidden="true" /> Rapporter arrangementet
+          </button>
+        </div>
+      )}
 
       {action && <BottomBar aboveTabBar>{action}</BottomBar>}
+      <ReportSheet open={reportOpen} onClose={() => setReportOpen(false)} kind="event" targetId={e.id} targetName={e.title} />
 
       <UnlockSheet
         open={unlockOpen}

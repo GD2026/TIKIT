@@ -13,7 +13,7 @@ function Part({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-const UPDATED = '24. september 2026';
+const UPDATED = '28. september 2026';
 
 /** The operator's name and contact line as configured on the server (OPERATOR_NAME, OPERATOR_ORG_NUMBER, SUPPORT_EMAIL). */
 function useOperator() {
@@ -90,6 +90,11 @@ function Terms() {
           Vi kan sperre kontoer og kansellere kjøp som skyldes svindel, automatisert oppkjøp, oppkjøp for videresalg med fortjeneste eller annet misbruk. Betalingen for et kansellert kjøp
           blir da refundert.
         </p>
+        <p>
+          Bare arrangører som TIKIT har godkjent, kan publisere arrangementer. Innhold som er støtende, hatefullt, ulovlig, villedende eller som oppfordrer til skadelig bruk av alkohol
+          eller rusmidler, er ikke tillatt. Alle kan rapportere et arrangement eller en arrangør i appen. Vi behandler rapporter innen ett døgn, fjerner innhold som bryter vilkårene, og
+          stenger arrangører som gjør det gjentatte ganger. Du kan også skjule en arrangør, så vises ikke arrangementene deres for deg.
+        </p>
       </Part>
       <Part title="9. Ansvar">
         <p>
@@ -129,8 +134,12 @@ function PrivacyPolicy() {
         </p>
         <p>
           Når du bruker TIKIT: bestillinger og betalingsreferanser (aldri kortnummer), billetter og navnene på dem, overføringer (mottakers e-post eller mobilnummer og hilsen),
-          videresalg, køplasser, ventelister, salgsvarsler, favoritter, varsler og innsjekk i døra. For sikkerhet lagrer vi innloggingsøkten som en hash og nettleserens navn. IP-adressen
+          videresalg, køplasser, ventelister, salgsvarsler, favoritter, arrangører du har skjult, varsler og innsjekk i døra. Rapporterer du et arrangement eller en arrangør, lagrer vi
+          rapporten (grunn og beskrivelse, og hvem du er hvis du var logget inn). For sikkerhet lagrer vi innloggingsøkten som en hash og navnet på nettleseren eller appen. IP-adressen
           brukes kort for å begrense misbruk, men lagres ikke.
+        </p>
+        <p>
+          Logger du inn med Apple, lagrer vi en kryptert nøkkel fra Apple. Den brukes bare til å trekke tilbake TIKITs tilgang hos Apple når du sletter kontoen.
         </p>
       </Part>
       <Part title="Hvorfor">
@@ -150,7 +159,8 @@ function PrivacyPolicy() {
           billett du overfører, ser navnet ditt og hilsenen din.
         </p>
         <p>
-          Leverandører som behandler data på våre vegne: drift (Render, servere i Frankfurt, nettverk fra Cloudflare) og e-post (Resend). Vipps MobilePay, Stripe, Google og Apple
+          Leverandører som behandler data på våre vegne: drift (Render, servere i Frankfurt, nettverk fra Cloudflare), database (Supabase, servere i EU, når den brukes) og e-post
+          (Resend). Vipps MobilePay, Stripe, Google og Apple
           behandler opplysninger etter sine egne vilkår når du bruker dem. Noen leverandører er selskaper i USA. Overføring skjer da med grunnlag i EU–USA-rammeverket for personvern
           eller EUs standardavtaler.
         </p>
@@ -159,7 +169,7 @@ function PrivacyPolicy() {
         <p>
           Profilen lagres til du sletter kontoen. Bestillinger oppbevares i fem år etter utgangen av regnskapsåret (bokføringsloven) og anonymiseres deretter. Navn på billetter og
           innsjekklogger slettes eller anonymiseres ett år etter arrangementet, og køplasser og ventelister 30 dager etter. Mottakers kontaktinfo ved overføring slettes etter 90 dager, og
-          varsler etter ett år. Innloggingsøkter utløper etter 30 dager uten bruk.
+          varsler etter ett år. Rapporter om innhold slettes ett år etter at de er behandlet. Innloggingsøkter utløper etter 30 dager uten bruk.
         </p>
       </Part>
       <Part title="Dine rettigheter">
@@ -178,6 +188,10 @@ function PrivacyPolicy() {
         <p>
           TIKIT bruker bare det som er strengt nødvendig: en innloggingskapsel, en kortvarig kapsel under innlogging, innstillinger som byen du har valgt, og billetter som er lagret på
           telefonen så de virker uten nett. Vi bruker ingen sporing, statistikk eller annonsekapsler. Du kan slette alt i nettleserens innstillinger for nettstedsdata.
+        </p>
+        <p>
+          I iOS-appen lagres innloggingen i nøkkelringen på telefonen (bare på denne enheten), og billettene lagres i appen så de virker uten nett. Alt fjernes når du logger ut.
+          Appen spør bare om tilgang til kameraet, og bare når du bruker dørskanneren eller tar bilde til et arrangement. Appen sporer deg ikke og har ingen annonser.
         </p>
       </Part>
     </>

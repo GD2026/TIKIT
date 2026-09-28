@@ -1,6 +1,7 @@
 import { Link } from 'react-router';
 import {
   Bell,
+  EyeOff,
   Heart,
   KeyRound,
   LayoutDashboard,
@@ -175,6 +176,15 @@ export default function Profile() {
             }
             title="Personvern og data"
             to="/profil/personvern"
+          />
+          <Row
+            icon={
+              <IconTile color="#636366">
+                <EyeOff />
+              </IconTile>
+            }
+            title="Skjulte arrangører"
+            to="/profil/skjulte"
           />
         </Section>
 

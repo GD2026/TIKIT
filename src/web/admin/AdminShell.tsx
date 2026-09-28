@@ -1,4 +1,4 @@
-import { Building2, CalendarDays, LayoutDashboard, Settings, Shield, Users } from 'lucide-react';
+import { Building2, CalendarDays, Flag, LayoutDashboard, Settings, Shield, Users } from 'lucide-react';
 import { useAuth } from '../app/auth';
 import { useConfig } from '../api/hooks';
 import { SectionShell, type ShellNavItem } from '../components/layout/SectionShell';
@@ -13,6 +13,7 @@ const NAV: ShellNavItem[] = [
   { to: '/admin', label: 'Oversikt', icon: <LayoutDashboard />, end: true },
   { to: '/admin/arrangorer', label: 'Arrangører', icon: <Building2 /> },
   { to: '/admin/arrangementer', label: 'Arrangementer', short: 'Eventer', icon: <CalendarDays /> },
+  { to: '/admin/rapporter', label: 'Rapporter', icon: <Flag /> },
   { to: '/admin/brukere', label: 'Brukere', icon: <Users /> },
   { to: '/admin/innstillinger', label: 'Gebyrer', icon: <Settings /> },
 ];

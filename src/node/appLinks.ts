@@ -24,7 +24,6 @@ export function appleAppSiteAssociation(cfg: AppLinkConfig) {
     applinks: {
       details: [{ appIDs: cfg.appIds, components: APP_PATHS.map((p) => ({ '/': p })) }],
     },
-    webcredentials: { apps: cfg.appIds },
   };
 }
 

@@ -1,6 +1,6 @@
 # Personvernerklæring for TIKIT
 
-*Sist oppdatert 24. september 2026. Samme tekst vises i appen på `/personvernerklaering`.*
+*Sist oppdatert 28. september 2026. Samme tekst vises i appen på `/personvernerklaering`.*
 
 > **Før publisering:** Fyll inn feltene i [hakeparenteser], og la en rådgiver lese gjennom teksten. Den bygger på hvordan TIKIT faktisk fungerer, men er ikke juridisk rådgivning.
 
@@ -23,9 +23,11 @@ Vi får aldri passordet ditt.
 - Profil: by du har valgt, og hvilke varsler du vil ha.
 - Kjøp: bestillinger, beløp, rabattkoder, referanse til betalingen hos Vipps eller Stripe (ikke kortnummer), kvitteringer og refusjoner.
 - Billetter: navn på billetten, sete, overføringer (mottakers e-post eller mobilnummer og en eventuell hilsen) og videresalg.
-- Køplass, venteliste, salgsvarsler, favoritter og arrangører du følger.
+- Køplass, venteliste, salgsvarsler, favoritter, arrangører du følger og arrangører du har skjult.
+- Rapporter om innhold: grunnen, beskrivelsen og hvem som sendte rapporten hvis vedkommende var logget inn.
 - Innsjekk: når billetten ble skannet, ved hvilken inngang og av hvem.
-- Teknisk: en innloggingsøkt (lagret som en kryptografisk hash), nettleserens navn og versjon for økten, og IP-adressen din i kort tid for å begrense misbruk (lagres ikke).
+- Teknisk: en innloggingsøkt (lagret som en kryptografisk hash), navn og versjon på nettleseren eller appen for økten, og IP-adressen din i kort tid for å begrense misbruk (lagres ikke).
+- Logger du inn med Apple: en kryptert nøkkel fra Apple, som bare brukes til å trekke tilbake TIKITs tilgang hos Apple når du sletter kontoen.
 
 **For arrangører** i tillegg: opplysninger om arrangøren, teammedlemmer og kontonummer for utbetaling.
 
@@ -45,7 +47,7 @@ Vi selger aldri opplysninger og bruker dem ikke til reklame eller profilering. D
 
 - **Arrangøren** av et arrangement du har kjøpt billett til, får navn og kontaktinformasjon på kjøperen og navn på billettene. Det brukes for å gjennomføre arrangementet og kontrollere adgang. Dørvakter ser bare navn, billettype og om alderen er bekreftet.
 - **Mottakeren** av en billett du overfører, ser navnet ditt og hilsenen din.
-- **Leverandører som behandler data på våre vegne:** drift og hosting (Render, servere i Frankfurt, med nettverk fra Cloudflare) og utsending av e-post (Resend).
+- **Leverandører som behandler data på våre vegne:** drift og hosting (Render, servere i Frankfurt, med nettverk fra Cloudflare), database (Supabase, servere i EU – [fjern punktet hvis dere ikke bruker Supabase]) og utsending av e-post (Resend).
 - **Selvstendige tjenester du selv velger å bruke:** Vipps MobilePay (innlogging og betaling), Stripe (kortbetaling), Google og Apple (innlogging). De behandler opplysningene etter sine egne personvernerklæringer.
 - **Myndigheter** når loven krever det.
 
@@ -66,6 +68,8 @@ Noen leverandører er selskaper i USA. Overføring skjer da enten fordi leverand
 | Varsler i appen | Ett år |
 | Innloggingsøkt | 30 dager uten bruk |
 | Revisjonslogg | Fem år |
+| Rapporter om innhold | Ett år etter at rapporten er behandlet |
+| Skjulte arrangører | Til du viser dem igjen eller sletter kontoen |
 
 Sletter du kontoen, fjernes profilen, innloggingene, favorittene og varslene dine med én gang. Bestillingene beholdes uten navn og kontaktinfo så lenge bokføringsreglene krever det. Sletting og anonymisering skjer automatisk hver dag.
 
@@ -91,6 +95,8 @@ Alt sendes kryptert (HTTPS). Databasen er bare tilgjengelig internt hos driftsle
 ## 9. Informasjonskapsler og lokal lagring
 
 TIKIT bruker bare det som er strengt nødvendig for at tjenesten du ber om skal virke. Vi bruker ingen sporing, statistikk- eller annonsekapsler. Se [informasjonskapsler.md](informasjonskapsler.md) for en full liste.
+
+**iOS-appen:** innloggingen lagres i nøkkelringen på telefonen (bare på denne enheten), og billettene lagres i appen så de virker uten nett. Alt fjernes når du logger ut. Appen spør bare om tilgang til kameraet, og bare når du bruker dørskanneren eller tar bilde til et arrangement. Appen sporer deg ikke, har ingen annonser og ingen analyseverktøy.
 
 ## 10. Endringer
 

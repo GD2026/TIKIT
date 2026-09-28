@@ -1,6 +1,6 @@
 # Kjøpsvilkår for TIKIT
 
-*Sist oppdatert 24. september 2026. Samme tekst vises i appen på `/vilkar`.*
+*Sist oppdatert 28. september 2026. Samme tekst vises i appen på `/vilkar`.*
 
 > **Før publisering:** Fyll inn feltene i [hakeparenteser], og la en rådgiver lese gjennom teksten. Den bygger på hvordan TIKIT faktisk fungerer, men er ikke juridisk rådgivning.
 
@@ -52,6 +52,8 @@ Du betaler med Vipps eller kort. Kortbetaling håndteres av Stripe, og TIKIT ser
 ## 8. Misbruk
 
 Vi kan sperre kontoer og kansellere kjøp som skyldes svindel, automatisert oppkjøp, oppkjøp for videresalg med fortjeneste eller annet misbruk. Betalingen for et kansellert kjøp blir da refundert.
+
+**Innhold og rapportering.** Bare arrangører som TIKIT har godkjent, kan publisere arrangementer. Innhold som er støtende, hatefullt, ulovlig, villedende eller som oppfordrer til skadelig bruk av alkohol eller rusmidler, er ikke tillatt. Alle kan rapportere et arrangement eller en arrangør i appen. Vi behandler rapporter innen ett døgn, fjerner innhold som bryter vilkårene, og stenger arrangører som gjør det gjentatte ganger. Du kan også skjule en arrangør, så vises ikke arrangementene deres for deg.
 
 ## 9. Ansvar
 

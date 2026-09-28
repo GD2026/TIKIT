@@ -72,6 +72,14 @@ services:
         sync: false
       - key: MAIL_FROM
         sync: false
+      # iOS-appen (docs/ios.md): bundle ID, f.eks. no.tikit.app
+      - key: APPLE_BUNDLE_IDS
+        sync: false
+      # App Review-tilgang: fyll inn mens Apple ser gjennom appen, tøm etterpå (docs/app-store/review-notes.md)
+      - key: REVIEW_LOGIN_EMAIL
+        sync: false
+      - key: REVIEW_LOGIN_CODE
+        sync: false
 
 databases:
   - name: tikit-db

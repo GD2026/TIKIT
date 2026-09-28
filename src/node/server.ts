@@ -25,6 +25,7 @@ import { createStripePayments } from './integrations/stripe/payments';
 import { createResendMailer } from './integrations/resend/mailer';
 import { appReturnPage, appleAppSiteAssociation, nativeCors } from './appLinks';
 import { securityHeaders } from './security';
+import { loadDemoCovers } from './demoImages';
 
 export interface TikitServer {
   app: Hono;
@@ -198,7 +199,9 @@ export async function createTikitServer(cfg: NodeConfig, log: Logger): Promise<T
 
   if (cfg.demoMode && env.SEED_DEMO_DATA && !(await isSeeded(deps))) {
     log.info('Legger inn demodata …');
-    await seedDemoData(deps);
+    const covers = loadDemoCovers();
+    if (covers.size > 0) log.info(`Demobilder: ${covers.size} arrangementer får bilde fra assets/demo-events/`);
+    await seedDemoData(deps, { covers });
   }
 
   // ── HTTP ────────────────────────────────────────────────────────────────

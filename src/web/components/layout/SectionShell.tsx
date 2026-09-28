@@ -69,15 +69,18 @@ export function SectionShell({ nav, header, context, backTo = '/', backLabel = '
         style={{ paddingBottom: 'max(var(--tabbar-gap), var(--safe-bottom))' }}
       >
         <div className="glass pointer-events-auto flex h-[var(--tabbar-height)] items-center gap-1 rounded-full p-1.5">
-          {nav.filter((item) => !item.desktopOnly).map((item) => {
+          {nav.filter((item) => !item.desktopOnly).map((item, _i, shown) => {
             const active = isActive(item);
+            // Six tabs still fit a 375 pt wide phone when each gets a little less room.
+            const crowded = shown.length > 5;
             return (
               <Link
                 key={item.to}
                 to={item.to}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'press flex h-full min-w-[66px] flex-col items-center justify-center gap-0.5 rounded-full px-2 no-underline transition-colors [&_svg]:h-[22px] [&_svg]:w-[22px]',
+                  'press flex h-full flex-col items-center justify-center gap-0.5 rounded-full no-underline transition-colors [&_svg]:h-[22px] [&_svg]:w-[22px]',
+                  crowded ? 'min-w-[52px] px-1' : 'min-w-[66px] px-2',
                   active ? 'bg-fill-3 text-tint' : 'text-label',
                 )}
               >

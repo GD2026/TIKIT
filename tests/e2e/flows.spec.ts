@@ -174,6 +174,7 @@ test.describe('flere sider', () => {
       ['/admin', 'Admin'],
       ['/admin/arrangorer', 'Admin arrangører'],
       ['/admin/arrangementer', 'Admin arrangementer'],
+      ['/admin/rapporter', 'Admin rapporter'],
       ['/admin/brukere', 'Admin brukere'],
       ['/admin/innstillinger', 'Admin gebyrer'],
     ] as const) {
@@ -181,5 +182,31 @@ test.describe('flere sider', () => {
       await page.waitForLoadState('networkidle');
       await expectAccessible(page, name);
     }
+  });
+});
+
+test.describe('trygghet (App Store 1.2)', () => {
+  test('et arrangement kan rapporteres, og en arrangør kan skjules og vises igjen', async ({ page }) => {
+    await page.goto('/e/russetreff-vest');
+    await page.getByRole('button', { name: 'Rapporter arrangementet' }).click();
+    const sheet = page.getByRole('dialog', { name: 'Rapporter arrangement' });
+    await expect(sheet).toBeVisible();
+    await expectAccessible(page, 'Rapporter arrangement');
+    await sheet.getByRole('radio', { name: /Villedende/ }).click();
+    await sheet.getByRole('button', { name: 'Send rapport' }).click();
+    await expect(page.getByText('Takk! Vi ser på rapporten så raskt vi kan.')).toBeVisible();
+
+    // The organizer page: hide it for me (needs sign-in), then undo from the profile.
+    await page.getByRole('link', { name: /Arrangør$/ }).first().click();
+    await page.waitForURL(/\/a\//);
+    await page.getByRole('button', { name: 'Skjul arrangøren for meg' }).click();
+    // After signing in, the action continues by itself and asks for confirmation.
+    await loginAsBuyer(page);
+    await page.getByRole('button', { name: 'Skjul', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Vis arrangøren igjen' })).toBeVisible();
+    await page.goto('/profil/skjulte');
+    await expectAccessible(page, 'Skjulte arrangører');
+    await page.getByRole('button', { name: 'Vis igjen' }).first().click();
+    await expect(page.getByText('Ingen skjulte arrangører')).toBeVisible();
   });
 });

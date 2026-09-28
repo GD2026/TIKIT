@@ -13,6 +13,7 @@ import { runDuePaymentJobs } from './paymentJobs';
 import { applyRetention } from './retention';
 import { loadTicketTypes, activeHeld, availableOf } from './inventory';
 import { ticketTypeState } from './dto';
+import { purgeExpiredHandoffs } from './nativeAuth';
 import { formatEventWhen } from '../../shared/time';
 
 // ── Notifications ────────────────────────────────────────────────────────────
@@ -187,6 +188,7 @@ export async function runCron(deps: Deps): Promise<CronResult | null> {
       retention: await applyRetention(deps),
     };
     await cleanup(deps);
+    await purgeExpiredHandoffs(deps);
     return result;
   } catch (err) {
     deps.log.error('Cron feilet', { error: String(err) });

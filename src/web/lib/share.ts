@@ -23,8 +23,17 @@ export async function copyText(text: string): Promise<boolean> {
   }
 }
 
+type ShareFn = (data: { title: string; text?: string; url: string }) => Promise<'shared' | 'failed'>;
+let nativeShare: ShareFn | null = null;
+
+/** The iOS app plugs in the system share sheet (src/web/native/device.ts). */
+export function setNativeShare(fn: ShareFn): void {
+  nativeShare = fn;
+}
+
 /** Opens the native share sheet when available; otherwise copies the link. */
 export async function shareLink(data: { title: string; text?: string; url: string }): Promise<'shared' | 'copied' | 'failed'> {
+  if (nativeShare && (await nativeShare(data)) === 'shared') return 'shared';
   if (!isDemoBuild && typeof navigator.share === 'function') {
     try {
       await navigator.share(data);

@@ -18,7 +18,7 @@ import { ListSkeleton, QueryError } from '../components/ui/States';
 import { useToast } from '../components/ui/Overlays';
 import { TICKET_STATUS } from '../lib/labels';
 import { useDebounced } from '../lib/hooks';
-import { apiUrl, canDownload } from '../lib/links';
+import { apiUrl, canDownload, downloadApiFile, filesViaApp } from '../lib/links';
 import { copyText } from '../lib/share';
 import { canManage, orgKey, useOrg, useOrgQuery } from './shared';
 
@@ -153,6 +153,7 @@ export default function Attendees() {
   const [filter, setFilter] = useState<'all' | 'in' | 'out'>('all');
   const [guestOpen, setGuestOpen] = useState(false);
   const term = useDebounced(search.trim().toLowerCase(), 150);
+  const api = useApi();
   const toast = useToast();
 
   const all = useMemo(() => q.data?.attendees ?? [], [q.data]);
@@ -178,7 +179,16 @@ export default function Attendees() {
           </Button>
         )}
         {manage &&
-          (canDownload ? (
+          (canDownload && filesViaApp() ? (
+            <Button
+              size="sm"
+              variant="gray"
+              icon={<Download className="h-4 w-4" />}
+              onClick={() => void downloadApiFile(api, `/org/${org.id}/events/${eventId}/attendees.csv`, 'deltakere.csv').catch((err: unknown) => toast({ message: errorMessage(err), tone: 'error' }))}
+            >
+              Eksporter CSV
+            </Button>
+          ) : canDownload ? (
             <a href={apiUrl(`/org/${org.id}/events/${eventId}/attendees.csv`)} className="press inline-flex h-[34px] items-center gap-2 rounded-full bg-fill-3 px-3.5 text-subhead font-semibold text-label no-underline">
               <Download className="h-4 w-4" aria-hidden="true" /> Eksporter CSV
             </a>

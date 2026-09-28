@@ -1,6 +1,8 @@
-// Renders the TIKIT app icons and the link-preview image into public/ (run: npm run icons).
+// Renders the TIKIT app icons and the link-preview image into public/, and the iOS app icon and launch image
+// into ios/App/App/Assets.xcassets (run: npm run icons).
 // Uses the Chromium that ships with Playwright, so the result matches the in-app logo exactly.
-import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
+import { inflateSync, deflateSync } from 'node:zlib';
 import { chromium } from '@playwright/test';
 
 const GRADIENT = `<linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1B1464"/><stop offset="0.62" stop-color="#3B4CF2"/><stop offset="1" stop-color="#FF6FB5"/></linearGradient>`;
@@ -50,5 +52,92 @@ await page.setContent(`<html><head><style>
 await page.waitForTimeout(200);
 await page.screenshot({ path: 'public/og.png', clip: { x: 0, y: 0, width: 1200, height: 630 } });
 
+// ── iOS app ────────────────────────────────────────────────────────────────
+// App Store Connect refuses icons with an alpha channel, so the PNG is rewritten as plain RGB.
+const assets = 'ios/App/App/Assets.xcassets';
+if (existsSync(assets)) {
+  const icon = `${assets}/AppIcon.appiconset/AppIcon-512@2x.png`;
+  await png(square(1), 1024, icon);
+  writeFileSync(icon, toRgbPng(readFileSync(icon)));
+
+  // Launch image: shown scaled to fill the screen, so the mark sits small in the middle of a large square.
+  await page.setViewportSize({ width: 2732, height: 2732 });
+  // Flat colour (the same as SplashScreen.backgroundColor in capacitor.config.ts) keeps the file small.
+  await page.setContent(`<html><body style="margin:0;width:2732px;height:2732px;display:grid;place-items:center;background:#0b0a24">${rounded.replace('<svg ', '<svg width="420" height="420" ')}</body></html>`);
+  const splash = toRgbPng(await page.screenshot({ clip: { x: 0, y: 0, width: 2732, height: 2732 } }));
+  for (const name of ['splash-2732x2732.png', 'splash-2732x2732-1.png', 'splash-2732x2732-2.png']) writeFileSync(`${assets}/Splash.imageset/${name}`, splash);
+  console.log('iOS: appikon (1024, uten gjennomsiktighet) og oppstartsbilde er laget.');
+}
+
 await browser.close();
 console.log('Ikoner og forhåndsvisning er laget i public/.');
+
+/** Rewrites an 8-bit PNG (RGB or RGBA, not interlaced) as 8-bit RGB with no alpha channel. */
+function toRgbPng(buf) {
+  const width = buf.readUInt32BE(16);
+  const height = buf.readUInt32BE(20);
+  const colorType = buf[25];
+  if (buf[24] !== 8 || buf[28] !== 0 || (colorType !== 2 && colorType !== 6)) throw new Error('Uventet PNG-format');
+  if (colorType === 2) return buf;
+  const idat = [];
+  for (let i = 8; i < buf.length; ) {
+    const len = buf.readUInt32BE(i);
+    const type = buf.toString('ascii', i + 4, i + 8);
+    if (type === 'IDAT') idat.push(buf.subarray(i + 8, i + 8 + len));
+    i += 12 + len;
+  }
+  const raw = inflateSync(Buffer.concat(idat));
+  const bpp = 4;
+  const stride = width * bpp;
+  const prev = Buffer.alloc(stride);
+  const line = Buffer.alloc(stride);
+  const out = Buffer.alloc(height * (1 + width * 3));
+  for (let y = 0; y < height; y++) {
+    const filter = raw[y * (stride + 1)];
+    const src = raw.subarray(y * (stride + 1) + 1, (y + 1) * (stride + 1));
+    for (let x = 0; x < stride; x++) {
+      const a = x >= bpp ? line[x - bpp] : 0;
+      const b = prev[x];
+      const c = x >= bpp ? prev[x - bpp] : 0;
+      let v = src[x];
+      if (filter === 1) v += a;
+      else if (filter === 2) v += b;
+      else if (filter === 3) v += (a + b) >> 1;
+      else if (filter === 4) {
+        const p = a + b - c;
+        const pa = Math.abs(p - a);
+        const pb = Math.abs(p - b);
+        const pc = Math.abs(p - c);
+        v += pa <= pb && pa <= pc ? a : pb <= pc ? b : c;
+      }
+      line[x] = v & 0xff;
+    }
+    const o = y * (1 + width * 3);
+    out[o] = 0;
+    for (let x = 0; x < width; x++) line.copy(out, o + 1 + x * 3, x * 4, x * 4 + 3);
+    line.copy(prev);
+  }
+  const chunk = (type, data) => {
+    const len = Buffer.alloc(4);
+    len.writeUInt32BE(data.length);
+    const body = Buffer.concat([Buffer.from(type, 'ascii'), data]);
+    const crc = Buffer.alloc(4);
+    crc.writeUInt32BE(crc32(body));
+    return Buffer.concat([len, body, crc]);
+  };
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(width, 0);
+  ihdr.writeUInt32BE(height, 4);
+  ihdr[8] = 8;
+  ihdr[9] = 2;
+  return Buffer.concat([buf.subarray(0, 8), chunk('IHDR', ihdr), chunk('IDAT', deflateSync(out, { level: 9 })), chunk('IEND', Buffer.alloc(0))]);
+}
+
+function crc32(data) {
+  let c = ~0;
+  for (const byte of data) {
+    c ^= byte;
+    for (let k = 0; k < 8; k++) c = c & 1 ? (c >>> 1) ^ 0xedb88320 : c >>> 1;
+  }
+  return ~c >>> 0;
+}

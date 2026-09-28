@@ -51,6 +51,8 @@ interface SeedCtx {
   nowS: string;
   rand: () => number;
   users: User[];
+  /** Cover pictures by event slug (Node server only – see src/node/demoImages.ts). */
+  covers: ReadonlyMap<string, SeedImage>;
 }
 
 function makeUser(ctx: SeedCtx, name: string, email: string | null, extra: Partial<User> = {}): User {
@@ -114,12 +116,34 @@ interface EventSpec {
   createdDaysAgo?: number;
 }
 
+/** A picture to use as an event cover in the demo data. */
+export interface SeedImage {
+  mime: 'image/jpeg' | 'image/png';
+  /** base64 */
+  data: string;
+  width: number;
+  height: number;
+  bytes: number;
+}
+
+export interface SeedOptions {
+  /** Cover pictures by event slug. Without them the events use generated posters. */
+  covers?: ReadonlyMap<string, SeedImage>;
+}
+
 async function makeEvent(ctx: SeedCtx, spec: EventSpec): Promise<EventDoc> {
   const created = addDays(ctx.now, -(spec.createdDaysAgo ?? 30)).toISOString();
+  const slug = slugify(spec.title);
+  const cover = ctx.covers.get(slug);
+  let coverImageId: string | null = null;
+  if (cover) {
+    coverImageId = newId();
+    await ctx.tx.insert('images', { id: coverImageId, ownerId: spec.org.createdBy, createdAt: created, ...cover });
+  }
   const e: EventDoc = {
     id: newId(),
     organizerId: spec.org.id,
-    slug: slugify(spec.title),
+    slug,
     title: spec.title,
     subtitle: spec.subtitle,
     description: spec.description,
@@ -135,7 +159,7 @@ async function makeEvent(ctx: SeedCtx, spec: EventSpec): Promise<EventDoc> {
     city: spec.city,
     ageLimit: spec.ageLimit,
     poster: { ...spec.poster, seed: Math.floor(ctx.rand() * 1_000_000) },
-    coverImageId: null,
+    coverImageId,
     lineup: spec.lineup ?? [],
     tags: spec.tags ?? [],
     settings: settings(spec.settings),
@@ -311,11 +335,11 @@ export async function isSeeded(deps: Deps): Promise<boolean> {
   return deps.store.read(async (tx) => (await tx.count('events')) > 0);
 }
 
-export async function seedDemoData(deps: Deps): Promise<void> {
+export async function seedDemoData(deps: Deps, opts: SeedOptions = {}): Promise<void> {
   const now = deps.clock();
   const nowS = now.toISOString();
   await deps.store.tx(async (tx) => {
-    const ctx: SeedCtx = { tx, deps, now, nowS, rand: mulberry32(20270517), users: [] };
+    const ctx: SeedCtx = { tx, deps, now, nowS, rand: mulberry32(20270517), users: [], covers: opts.covers ?? new Map() };
     const { rand } = ctx;
 
     await tx.put('settings', { id: 'platform', ...DEFAULT_PLATFORM_SETTINGS, updatedAt: nowS });

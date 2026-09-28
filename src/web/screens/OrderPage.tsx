@@ -6,6 +6,8 @@ import { CalendarPlus, CircleAlert, Clock, Ticket } from 'lucide-react';
 import type { OrderDTO } from '../../shared/types';
 import { formatEventWhen } from '../../shared/time';
 import { useApi } from '../app/context';
+import { errorMessage } from '../api/client';
+import { useToast } from '../components/ui/Overlays';
 import { qk, useOrder } from '../api/hooks';
 import { Page } from '../components/layout/Page';
 import { EventImage } from '../components/event/EventImage';
@@ -14,7 +16,7 @@ import { EmptyState, Pill, Spinner } from '../components/ui/Feedback';
 import { Receipt } from '../components/order/Receipt';
 import { ORDER_STATUS } from '../lib/labels';
 import { CenterSpinner, QueryError, RequireLogin } from '../components/ui/States';
-import { apiUrl, canDownload, googleCalendarUrl } from '../lib/links';
+import { apiUrl, canDownload, downloadApiFile, filesViaApp, googleCalendarUrl } from '../lib/links';
 import { isIOS } from '../lib/device';
 import { haptic } from '../lib/haptics';
 
@@ -48,6 +50,7 @@ function SuccessMark() {
 
 function OrderBody({ orderId }: { orderId: string }) {
   const api = useApi();
+  const toast = useToast();
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -134,7 +137,15 @@ function OrderBody({ orderId }: { orderId: string }) {
             {order.ticketIds.length === 1 ? 'Vis billetten' : 'Vis billettene'}
           </LinkButton>
           {/* Same rule as on the ticket: a calendar file on Apple devices (opens Calendar), Google Calendar elsewhere. */}
-          {canDownload && order.ticketIds[0] && (isIOS() || /Mac/.test(navigator.platform)) ? (
+          {canDownload && order.ticketIds[0] && filesViaApp() ? (
+            <button
+              type="button"
+              onClick={() => void downloadApiFile(api, `/tickets/${order.ticketIds[0]}/calendar.ics`, `${e.slug}.ics`).catch((err: unknown) => toast({ message: errorMessage(err), tone: 'error' }))}
+              className="press inline-flex h-[52px] items-center justify-center gap-2 rounded-full bg-fill-3 text-headline font-semibold text-label"
+            >
+              <CalendarPlus className="h-5 w-5" aria-hidden="true" /> Legg i kalenderen
+            </button>
+          ) : canDownload && order.ticketIds[0] && (isIOS() || /Mac/.test(navigator.platform)) ? (
             <a
               href={apiUrl(`/tickets/${order.ticketIds[0]}/calendar.ics`)}
               className="press inline-flex h-[52px] items-center justify-center gap-2 rounded-full bg-fill-3 text-headline font-semibold text-label no-underline"

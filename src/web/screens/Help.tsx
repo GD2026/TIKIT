@@ -6,6 +6,7 @@ import { useConfig } from '../api/hooks';
 import { Page } from '../components/layout/Page';
 import { copyText } from '../lib/share';
 import { useToast } from '../components/ui/Overlays';
+import { isNativeApp } from '../lib/device';
 
 function Faq({ q, children }: { q: string; children: ReactNode }) {
   return (
@@ -78,10 +79,13 @@ export default function Help() {
           <Faq q="Virker billetten uten nett?">
             <p>Ja. QR-koden lages på telefonen din. Åpne billetten én gang med nett før du drar, så ligger den klar selv om dekningen er dårlig i køen.</p>
           </Faq>
-          <Faq q="Hvordan legger jeg TIKIT på hjemskjermen?">
-            <p>iPhone: Åpne TIKIT i Safari, trykk på Del-knappen og velg «Legg til på Hjem-skjerm».</p>
-            <p>Android: Åpne TIKIT i Chrome, trykk på menyen og velg «Installer app».</p>
-          </Faq>
+          {/* The installed app is already on the home screen – and App Review (2.3.10) doesn't want other platforms named. */}
+          {!isNativeApp && (
+            <Faq q="Hvordan legger jeg TIKIT på hjemskjermen?">
+              <p>iPhone: Åpne TIKIT i Safari, trykk på Del-knappen og velg «Legg til på Hjem-skjerm».</p>
+              <p>Android: Åpne TIKIT i Chrome, trykk på menyen og velg «Installer app».</p>
+            </Faq>
+          )}
           <Faq q="Jeg har byttet telefon – hvor er billettene?">
             <p>Billettene ligger på kontoen din, ikke på telefonen. Logg inn med samme Vipps, Apple eller Google som før, så er de der.</p>
           </Faq>
@@ -108,6 +112,21 @@ export default function Help() {
           </Faq>
           <Faq q="Hva skjer hvis arrangementet blir avlyst?">
             <p>Du får hele beløpet tilbake automatisk – også servicegebyret – til betalingsmåten du brukte. Du får varsel og e-post når refusjonen er sendt.</p>
+          </Faq>
+        </Group>
+
+        <Group title="Trygghet">
+          <Faq q="Hvordan sier jeg fra om et arrangement eller en arrangør?">
+            <p>
+              Nederst på arrangementssiden og på arrangørsiden finner du «Rapporter». Rapporten går til TIKIT, ikke til arrangøren, og vi følger opp innen ett døgn. Innhold som bryter
+              vilkårene, fjernes, og arrangører som bryter dem gjentatte ganger, stenges.
+            </p>
+          </Faq>
+          <Faq q="Kan jeg slippe å se en arrangør?">
+            <p>Ja. Velg «Skjul arrangøren for meg» på arrangørsiden. Da vises ikke arrangementene deres i Utforsk og Søk. Du angrer under Profil → Skjulte arrangører.</p>
+          </Faq>
+          <Faq q="Hvem kan selge billetter på TIKIT?">
+            <p>Bare arrangører som TIKIT har godkjent. Verifiserte arrangører har et blått merke. Er du i tvil, sjekk arrangørsiden eller spør oss.</p>
           </Faq>
         </Group>
 

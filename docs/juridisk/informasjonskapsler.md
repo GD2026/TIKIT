@@ -1,6 +1,6 @@
 # Informasjonskapsler og lokal lagring i TIKIT
 
-*Sist oppdatert 24. september 2026.*
+*Sist oppdatert 28. september 2026.*
 
 TIKIT bruker bare lagring som er **strengt nødvendig** for å levere tjenesten du selv ber om: innlogging, kjøp, billetter som virker uten nett, og skanneren i døra. Det er unntatt fra samtykkekravet i ekomloven § 3-15, og derfor viser vi ikke et samtykkebanner. Vi bruker ingen sporing, statistikk eller annonser, og ingen tredjepartskapsler.
 
@@ -31,3 +31,16 @@ TIKIT bruker bare lagring som er **strengt nødvendig** for å levere tjenesten 
 | `tikit-tickets` | Billettene dine og hvem som er innlogget, så billetten kan vises i døra uten nett | 14 dager. Slettes når du logger ut eller en annen logger inn. |
 
 Du kan slette alt dette i nettleserens innstillinger (nettstedsdata). Da blir du logget ut, og billetter som er lagret for bruk uten nett, forsvinner til du åpner appen med nett igjen.
+
+## iOS-appen
+
+Appen bruker ikke informasjonskapsler for innlogging. I stedet:
+
+| Lager | Hva det inneholder | Varighet |
+| --- | --- | --- |
+| Nøkkelringen i iOS | Innloggingen (en tilfeldig nøkkel), bare på denne enheten | Til du logger ut eller sletter appen |
+| `tikit-offline:*` i appen | Billettene dine og hvem som er innlogget, så billetten kan vises i døra uten nett | 14 dager. Slettes når du logger ut eller en annen logger inn. |
+| `tikit.installed` | Et flagg som viser at appen er installert, så en gammel innlogging fra før appen ble slettet ikke brukes | Til du sletter appen |
+
+I tillegg brukes de samme innstillingene som i nettleseren (by, tilgangskoder, klokkeforskjell, skanner). Du sletter alt ved å logge ut og slette appen.
+

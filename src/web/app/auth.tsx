@@ -9,6 +9,7 @@ import { errorMessage } from '../api/client';
 import { Sheet } from '../components/ui/Sheet';
 import { AppleButton, GoogleButton, Logo, VippsButton } from '../components/brand/Brand';
 import { Button } from '../components/ui/Button';
+import { TextField } from '../components/ui/Field';
 import { useToast } from '../components/ui/Overlays';
 import { Avatar } from '../components/ui/Avatar';
 import { cn } from '../lib/cn';
@@ -19,6 +20,8 @@ export async function clearOfflineTicketCache(): Promise<void> {
   } catch {
     /* ignore */
   }
+  // Written out (not isNativeApp) so the web build drops the import entirely.
+  if (import.meta.env.MODE === 'native') (await import('../native/offline')).offlineClear();
 }
 
 interface LoginRequest {
@@ -96,10 +99,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
       const returnTo = req.returnTo ?? `${window.location.pathname}${window.location.search}`;
+      if (import.meta.env.MODE === 'native') {
+        // iOS app: system browser sheet (or the native Apple sheet), then back here with a session token.
+        void (async () => {
+          try {
+            const { nativeLogin } = await import('../native/auth');
+            const res = await nativeLogin(api, provider, { returnTo, mode: req.mode ?? 'login', appleNative: !!config?.appleNative });
+            if (!res) return; // cancelled
+            setLoginReq(null);
+            await clearOfflineTicketCache();
+            await qc.invalidateQueries();
+            toast({ message: req.mode === 'link' ? 'Innloggingsmetoden er koblet til' : 'Du er logget inn', tone: 'success' });
+            const target = res.returnTo ?? returnTo;
+            if (target !== `${window.location.pathname}${window.location.search}`) navigate(target, { replace: true });
+            if (req.then) window.setTimeout(req.then, 60);
+          } catch (err) {
+            toast({ message: errorMessage(err), tone: 'error' });
+          }
+        })();
+        return;
+      }
       const qs = new URLSearchParams({ returnTo, ...(req.mode === 'link' ? { mode: 'link' } : {}) });
       window.location.assign(`/api/auth/login/${provider}?${qs.toString()}`);
     },
-    [config, toast],
+    [api, config, navigate, qc, toast],
   );
 
   const value = useMemo<AuthApi>(
@@ -176,7 +199,55 @@ export function LoginPanel({ reason, onProvider, compact }: { reason?: string | 
         </a>
         .
       </p>
+      {config?.reviewLogin && <ReviewCodeLogin />}
     </div>
+  );
+}
+
+/**
+ * App Review access (only while REVIEW_LOGIN_CODE is set on the server). Apple's reviewers get the code in
+ * the review notes; see docs/app-store/review-notes.md.
+ */
+function ReviewCodeLogin() {
+  const api = useApi();
+  const qc = useQueryClient();
+  const toast = useToast();
+  const [open, setOpen] = useState(false);
+  const [code, setCode] = useState('');
+  const [busy, setBusy] = useState(false);
+  const submit = async () => {
+    setBusy(true);
+    try {
+      await api.post('/auth/review', { code: code.trim() });
+      setOpen(false);
+      await clearOfflineTicketCache();
+      await qc.invalidateQueries();
+      toast({ message: 'Du er logget inn', tone: 'success' });
+    } catch (err) {
+      toast({ message: errorMessage(err), tone: 'error' });
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <>
+      <button type="button" onClick={() => setOpen(true)} className="mt-4 min-h-11 px-2 text-subhead font-medium text-tint">
+        Logg inn med tilgangskode
+      </button>
+      <Sheet open={open} onClose={() => setOpen(false)} locked={busy} title="Tilgangskode">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void submit();
+          }}
+        >
+          <TextField label="Kode" autoComplete="one-time-code" autoCapitalize="off" autoCorrect="off" spellCheck={false} value={code} onChange={(e) => setCode(e.target.value)} data-autofocus />
+          <Button full size="lg" type="submit" className="mt-5" loading={busy} disabled={code.trim().length < 8}>
+            Logg inn
+          </Button>
+        </form>
+      </Sheet>
+    </>
   );
 }
 

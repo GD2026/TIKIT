@@ -14,11 +14,17 @@ async function boot() {
 
   let transport: Transport;
   let demo: DemoControls | null = null;
+  let startNative: ((router: { navigate: (to: string) => unknown }) => void) | null = null;
   if (import.meta.env.MODE === 'demo') {
     const { createDemoBackend } = await import('./demo/backend');
     const backend = await createDemoBackend();
     transport = backend.transport;
     demo = { reset: () => backend.reset(), seededAt: backend.seededAt };
+  } else if (import.meta.env.MODE === 'native') {
+    // The iOS app (Capacitor): bearer token from the Keychain, API on the server – see src/web/native/.
+    const native = await import('./native');
+    transport = await native.prepareNative();
+    startNative = native.startNative;
   } else {
     transport = createHttpTransport();
   }
@@ -53,8 +59,9 @@ async function boot() {
   );
 
   document.getElementById('boot')?.remove();
+  startNative?.(router);
 
-  if (import.meta.env.PROD && import.meta.env.MODE !== 'demo' && 'serviceWorker' in navigator) {
+  if (import.meta.env.PROD && import.meta.env.MODE !== 'demo' && import.meta.env.MODE !== 'native' && 'serviceWorker' in navigator) {
     const { registerSW } = await import('virtual:pwa-register');
     registerSW({
       immediate: true,

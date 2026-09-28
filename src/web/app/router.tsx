@@ -24,6 +24,7 @@ const NotificationSettings = page(() => import('../screens/NotificationSettings'
 const PurchaseHistory = page(() => import('../screens/PurchaseHistory'));
 const Favorites = page(() => import('../screens/Favorites'));
 const Privacy = page(() => import('../screens/Privacy'));
+const BlockedOrganizers = page(() => import('../screens/BlockedOrganizers'));
 const Help = page(() => import('../screens/Help'));
 const Notifications = page(() => import('../screens/Notifications'));
 const OrganizerPublic = page(() => import('../screens/OrganizerPublic'));
@@ -57,6 +58,7 @@ const AdminOverview = page(() => import('../admin/Overview'));
 const AdminOrganizers = page(() => import('../admin/Organizers'));
 const AdminEvents = page(() => import('../admin/Events'));
 const AdminUsers = page(() => import('../admin/Users'));
+const AdminReports = page(() => import('../admin/Reports'));
 const AdminSettings = page(() => import('../admin/Settings'));
 
 function PageFallback() {
@@ -122,6 +124,7 @@ export const routes: RouteObject[] = [
           { path: 'profil/kjop', element: el(PurchaseHistory) },
           { path: 'profil/favoritter', element: el(Favorites) },
           { path: 'profil/personvern', element: el(Privacy) },
+          { path: 'profil/skjulte', element: el(BlockedOrganizers) },
           { path: 'hjelp', element: el(Help) },
           { path: 'varsler', element: el(Notifications) },
           { path: 'vilkar', element: el(Legal) },
@@ -168,6 +171,7 @@ export const routes: RouteObject[] = [
           { index: true, element: el(AdminOverview) },
           { path: 'arrangorer', element: el(AdminOrganizers) },
           { path: 'arrangementer', element: el(AdminEvents) },
+          { path: 'rapporter', element: el(AdminReports) },
           { path: 'brukere', element: el(AdminUsers) },
           { path: 'innstillinger', element: el(AdminSettings) },
         ],

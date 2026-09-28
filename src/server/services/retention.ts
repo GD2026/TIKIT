@@ -22,6 +22,8 @@ export const RETENTION = {
   orderYears: 5,
   /** Audit log entries. */
   auditYears: 5,
+  /** Reports about content (moderation), counted from when they were handled. Open reports are kept. */
+  reportsDaysAfterHandled: 365,
 } as const;
 
 export const ANONYMIZED = 'Anonymisert';
@@ -90,6 +92,9 @@ export async function applyRetention(deps: Deps, opts: { force?: boolean } = {})
     for (const x of await tx.find('outbox')) if (x.createdAt < before(RETENTION.outboxDays) && (await tx.delete('outbox', x.id))) n++;
     const auditCutoff = new Date(Date.UTC(now.getUTCFullYear() - RETENTION.auditYears, now.getUTCMonth(), now.getUTCDate())).toISOString();
     for (const x of await tx.find('audit')) if (x.at < auditCutoff && (await tx.delete('audit', x.id))) n++;
+    for (const r of await tx.find('reports')) {
+      if (r.status !== 'open' && r.resolvedAt && r.resolvedAt < before(RETENTION.reportsDaysAfterHandled) && (await tx.delete('reports', r.id))) n++;
+    }
     return n;
   });
 

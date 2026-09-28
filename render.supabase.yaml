@@ -1,0 +1,88 @@
+# Render Blueprint – PRODUKSJON med Supabase som database: bare web-tjenesten ligger hos Render.
+# Lag prosjektet i Supabase først (region Frankfurt, eu-central-1) og lim inn «Session pooler»-adressen
+# i DATABASE_URL når Render spør. Tabellene lages automatisk ved første oppstart, med row level security
+# slik at Supabase sitt REST-API ikke kan lese dem. Sikkerhetskopi: Supabase Pro har daglig backup –
+# gratisplanen har ingen og settes på pause etter en uke uten trafikk (se docs/oppsett.md §6).
+# Oppsett i Render: New → Blueprint → velg repoet → Blueprint Path: render.supabase.yaml
+services:
+  - type: web
+    name: tikit
+    plan: starter
+    runtime: node
+    region: frankfurt
+    # --include=dev: NODE_ENV=production gjelder også under bygging, og uten dette hopper npm over vite/esbuild.
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 22.22.0
+      - key: DEMO_MODE
+        value: "false"
+      # Render ligger bak Cloudflare: den ekte klient-IP-en (for rate limiting) står i denne headeren.
+      - key: CLIENT_IP_HEADER
+        value: cf-connecting-ip
+      - key: TRUST_PROXY
+        value: "1"
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: CRON_SECRET
+        generateValue: true
+      # Supabase: Project → Connect → «Session pooler»-URI (ikke «Direct connection», den har bare IPv6)
+      - key: DATABASE_URL
+        sync: false
+      # Valgfritt: Supabase sitt CA-sertifikat (Database Settings → SSL) for full sertifikatsjekk
+      - key: DATABASE_CA_CERT
+        sync: false
+      - key: PUBLIC_URL
+        sync: false
+      - key: ADMIN_EMAILS
+        sync: false
+      - key: OPERATOR_NAME
+        value: Din Russetid AS
+      - key: OPERATOR_ORG_NUMBER
+        value: "936 491 243"
+      - key: SUPPORT_EMAIL
+        sync: false
+      - key: VIPPS_ENV
+        value: production
+      - key: VIPPS_CLIENT_ID
+        sync: false
+      - key: VIPPS_CLIENT_SECRET
+        sync: false
+      - key: VIPPS_SUBSCRIPTION_KEY
+        sync: false
+      - key: VIPPS_MSN
+        sync: false
+      - key: VIPPS_WEBHOOK_SECRET
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: APPLE_CLIENT_ID
+        sync: false
+      - key: APPLE_TEAM_ID
+        sync: false
+      - key: APPLE_KEY_ID
+        sync: false
+      - key: APPLE_PRIVATE_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      # iOS-appen (docs/ios.md): bundle ID, f.eks. no.tikit.app
+      - key: APPLE_BUNDLE_IDS
+        sync: false
+      # App Review-tilgang: fyll inn mens Apple ser gjennom appen, tøm etterpå (docs/app-store/review-notes.md)
+      - key: REVIEW_LOGIN_EMAIL
+        sync: false
+      - key: REVIEW_LOGIN_CODE
+        sync: false

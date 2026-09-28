@@ -1,27 +1,58 @@
 import { fileURLToPath } from 'node:url';
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { viteSingleFile } from 'vite-plugin-singlefile';
 
 /**
- * Two builds from one codebase:
+ * The iOS app's web view has no CSP header from our server, so the policy goes in a meta tag: our own
+ * scripts only, and network access only to the TIKIT server.
+ */
+function nativeCsp(apiOrigin: string): Plugin {
+  const csp = [
+    "default-src 'self'",
+    "script-src 'self'",
+    "style-src 'self' 'unsafe-inline'",
+    `img-src 'self' data: blob: ${apiOrigin}`,
+    "font-src 'self' data:",
+    `connect-src 'self' ${apiOrigin}`,
+    "media-src 'self' blob:",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "frame-src 'none'",
+  ].join('; ');
+  return {
+    name: 'tikit-native-csp',
+    transformIndexHtml: (html) => html.replace('<meta charset="UTF-8" />', `<meta charset="UTF-8" />\n    <meta http-equiv="Content-Security-Policy" content="${csp}" />`),
+  };
+}
+
+/**
+ * Three builds from one codebase:
  *  - default: the production PWA (talks to the Node API at /api)
+ *  - `--mode native`: the iOS app (Capacitor) in dist/native – talks to VITE_API_ORIGIN (see docs/ios.md)
  *  - `--mode demo`: a single self-contained HTML file with the whole API running in the browser
  */
 export default defineConfig(({ mode }) => {
   const demo = mode === 'demo';
+  const native = mode === 'native';
+  const apiOrigin = native ? (loadEnv(mode, process.cwd(), 'VITE_').VITE_API_ORIGIN ?? '').replace(/\/+$/, '') : '';
+  if (native && !/^https:\/\/[^/]+$|^http:\/\/(localhost|127\.0\.0\.1|192\.168\.[0-9.]+)(:\d+)?$/.test(apiOrigin)) {
+    throw new Error('iOS-bygget trenger serveradressen: VITE_API_ORIGIN=https://tikit.no (bare http mot localhost/lokalnett under utvikling). Se docs/ios.md.');
+  }
   return {
     base: demo ? './' : '/',
-    // The demo has no service worker; main.tsx only imports this in production, but the dev server resolves it anyway.
-    resolve: demo ? { alias: { 'virtual:pwa-register': fileURLToPath(new URL('./src/web/lib/pwa-register-stub.ts', import.meta.url)) } } : {},
+    // The demo and the app have no service worker; main.tsx only imports this for the PWA, but the dev server resolves it anyway.
+    resolve: demo || native ? { alias: { 'virtual:pwa-register': fileURLToPath(new URL('./src/web/lib/pwa-register-stub.ts', import.meta.url)) } } : {},
     plugins: [
       react(),
       tailwindcss(),
       ...(demo
         ? [viteSingleFile({ removeViteModuleLoader: true })]
-        : [
+        : native
+          ? [nativeCsp(apiOrigin)]
+          : [
             VitePWA({
               registerType: 'autoUpdate',
               injectRegister: false,
@@ -78,7 +109,7 @@ export default defineConfig(({ mode }) => {
           ]),
     ],
     build: {
-      outDir: demo ? 'dist-demo' : 'dist/web',
+      outDir: demo ? 'dist-demo' : native ? 'dist/native' : 'dist/web',
       emptyOutDir: true,
       target: 'es2022',
       // Maps are written for error tracking but not referenced from the shipped files.

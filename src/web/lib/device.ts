@@ -1,4 +1,6 @@
 export const isDemoBuild = import.meta.env.MODE === 'demo';
+/** The iOS app build (Capacitor, `npm run ios:build`). See src/web/native/. */
+export const isNativeApp = import.meta.env.MODE === 'native';
 
 export function isIOS(): boolean {
   if (typeof navigator === 'undefined') return false;

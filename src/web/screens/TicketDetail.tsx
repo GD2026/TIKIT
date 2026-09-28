@@ -29,9 +29,9 @@ import { useConfirm, useToast } from '../components/ui/Overlays';
 import { TicketPass, passState } from '../components/ticket/TicketPass';
 import { ResaleSheet, TransferSheet } from '../components/ticket/TicketSheets';
 import { useClockOffset, useWakeLock } from '../lib/hooks';
-import { apiUrl, canDownload, googleCalendarUrl, mapsUrl } from '../lib/links';
+import { apiUrl, canDownload, downloadApiFile, filesViaApp, googleCalendarUrl, mapsUrl } from '../lib/links';
 import { cn } from '../lib/cn';
-import { isIOS } from '../lib/device';
+import { isIOS, isNativeApp } from '../lib/device';
 
 function useOnline(): boolean {
   const [online, setOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine));
@@ -190,7 +190,7 @@ function TicketActions({ ticket }: { ticket: TicketDTO }) {
               href={apiUrl(`/tickets/${ticket.id}/wallet/apple`)}
             />
           )}
-          {config.wallet.google && (
+          {config.wallet.google && !isNativeApp && (
             <Row
               icon={
                 <IconTile color="#1A73E8">
@@ -226,7 +226,9 @@ function TicketActions({ ticket }: { ticket: TicketDTO }) {
               </IconTile>
             }
             title="Legg i kalenderen"
-            href={apiUrl(`/tickets/${ticket.id}/calendar.ics`)}
+            {...(filesViaApp()
+              ? { onClick: () => void downloadApiFile(api, `/tickets/${ticket.id}/calendar.ics`, `${e.slug}.ics`).catch((err: unknown) => toast({ message: errorMessage(err), tone: 'error' })) }
+              : { href: apiUrl(`/tickets/${ticket.id}/calendar.ics`) })}
           />
         ) : (
           <Row

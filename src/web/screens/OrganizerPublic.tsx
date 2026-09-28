@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams } from 'react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { BadgeCheck, CalendarX, Globe } from 'lucide-react';
+import { BadgeCheck, CalendarX, EyeOff, Flag, Globe } from 'lucide-react';
 import type { EventCard, OrganizerPublic as OrgPublic } from '../../shared/types';
 import { ORGANIZER_TYPES, posterPalette } from '../../shared/constants';
 import { useApi } from '../app/context';
@@ -14,7 +14,9 @@ import { RowCard } from '../components/event/EventCards';
 import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/Feedback';
 import { CenterSpinner, QueryError } from '../components/ui/States';
-import { useToast } from '../components/ui/Overlays';
+import { useConfirm, useToast } from '../components/ui/Overlays';
+import { Row, Section } from '../components/ui/List';
+import { ReportSheet } from '../components/moderation/ReportSheet';
 
 export default function OrganizerPublic() {
   const { slug } = useParams();
@@ -22,8 +24,10 @@ export default function OrganizerPublic() {
   const qc = useQueryClient();
   const toast = useToast();
   const gate = useLoginGate();
+  const confirm = useConfirm();
   const [busy, setBusy] = useState(false);
-  const q = useQuery<{ organizer: OrgPublic; events: EventCard[]; following: boolean }, ApiError>({
+  const [reporting, setReporting] = useState(false);
+  const q = useQuery<{ organizer: OrgPublic; events: EventCard[]; following: boolean; blocked?: boolean }, ApiError>({
     queryKey: qk.organizer(slug ?? ''),
     queryFn: () => api.get(`/organizers/${encodeURIComponent(slug!)}`),
     enabled: !!slug,
@@ -38,6 +42,7 @@ export default function OrganizerPublic() {
     );
 
   const { organizer: o, events, following } = q.data;
+  const blocked = q.data.blocked ?? false;
   const [c0, c1] = posterPalette(o.palette);
   const type = ORGANIZER_TYPES.find((t) => t.id === o.type)?.label;
 
@@ -55,6 +60,32 @@ export default function OrganizerPublic() {
           toast({ message: errorMessage(err), tone: 'error' });
         } finally {
           setBusy(false);
+        }
+      })();
+    });
+
+  // Hiding an organizer keeps its events out of Utforsk and Søk for this person (Guideline 1.2 blocking).
+  const toggleBlock = () =>
+    gate('Logg inn for å skjule arrangører', () => {
+      void (async () => {
+        if (!blocked) {
+          const ok = await confirm({
+            title: `Skjule ${o.name}?`,
+            message: 'Arrangementene deres vises ikke lenger i Utforsk og Søk for deg. Du kan angre under Profil → Skjulte arrangører.',
+            confirmLabel: 'Skjul',
+            destructive: true,
+          });
+          if (!ok) return;
+        }
+        try {
+          if (blocked) await api.del(`/organizers/${o.id}/block`);
+          else await api.post(`/organizers/${o.id}/block`);
+          await qc.invalidateQueries({ queryKey: qk.organizer(slug ?? '') });
+          await qc.invalidateQueries({ queryKey: ['home'] });
+          await qc.invalidateQueries({ queryKey: ['events'] });
+          toast({ message: blocked ? `${o.name} vises igjen` : `${o.name} er skjult`, tone: 'success' });
+        } catch (err) {
+          toast({ message: errorMessage(err), tone: 'error' });
         }
       })();
     });
@@ -100,6 +131,12 @@ export default function OrganizerPublic() {
           ))}
         </div>
       )}
+
+      <Section className="mx-4 mt-8" footer="Rapporter går til TIKIT, ikke til arrangøren. Vi følger opp innen ett døgn.">
+        <Row icon={<Flag className="h-5 w-5 text-label-2" aria-hidden="true" />} title="Rapporter arrangør" onClick={() => setReporting(true)} />
+        <Row icon={<EyeOff className="h-5 w-5 text-label-2" aria-hidden="true" />} title={blocked ? 'Vis arrangøren igjen' : 'Skjul arrangøren for meg'} onClick={toggleBlock} destructive={!blocked} />
+      </Section>
+      <ReportSheet open={reporting} onClose={() => setReporting(false)} kind="organizer" targetId={o.id} targetName={o.name} />
     </Page>
   );
 }
