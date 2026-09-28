@@ -2,7 +2,7 @@ import * as oidc from 'openid-client';
 import type { ExternalProfile, OAuthAdapter } from '../../../server/adapters/types';
 import { bool, callbackUrl, str } from '../oidc';
 
-/** Google (OpenID Connect): e-mail and name from the ID token. Keys: docs/oppsett.md §2. */
+/** Google (OpenID Connect): e-mail and name from the ID token. Keys: docs/oppsett.md §3. */
 
 export async function createGoogleLogin(cfg: { clientId: string; clientSecret: string }): Promise<OAuthAdapter> {
   const config = await oidc.discovery(new URL('https://accounts.google.com'), cfg.clientId, undefined, oidc.ClientSecretPost(cfg.clientSecret));

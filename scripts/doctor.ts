@@ -45,7 +45,7 @@ function report(cfg: NodeConfig): void {
     const db = databaseSetup(e.DATABASE_URL, e);
     add(db.warnings.length ? WARN : OK, 'Database', db.description, db.warnings);
   } else {
-    add(cfg.production ? BAD : OFF, 'Database', `innebygd PGlite i ${e.DATA_DIR} (bare for utvikling)`, ['Supabase: Project → Connect → «Session pooler» → kopier URI-en til DATABASE_URL (se docs/oppsett.md §6)']);
+    add(cfg.production ? BAD : OFF, 'Database', `innebygd PGlite i ${e.DATA_DIR} (bare for utvikling)`, ['Supabase: Project → Connect → «Session pooler» → kopier URI-en til DATABASE_URL (se docs/oppsett.md §1)']);
   }
 
   // ── Innlogging ──

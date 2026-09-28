@@ -22,7 +22,7 @@ På [developer.apple.com](https://developer.apple.com/account/resources/identifi
 1. **App ID** (type App): bundle ID `no.tikit.app` (eller ditt eget). Kryss av for:
    - **Sign in with Apple**
    - **Associated Domains**
-2. **Services ID** for nettsiden (hvis ikke allerede laget, se [oppsett.md §3](oppsett.md#3-sign-in-with-apple)): `no.tikit.web`, knyttet til App ID-en over.
+2. **Services ID** for nettsiden (hvis ikke allerede laget, se [oppsett.md §4](oppsett.md#4-sign-in-with-apple)): `no.tikit.web`, knyttet til App ID-en over.
 3. **Key** med *Sign in with Apple* (samme nøkkel som nettsiden bruker). Last ned `.p8`-filen.
 
 ## 2. Serveren

@@ -5,7 +5,7 @@ import { VIPPS_SYSTEM_HEADERS } from './common';
 
 /**
  * Logg inn med Vipps (OpenID Connect): verified name, phone, e-mail and birth date
- * (from the National Population Register). Keys: docs/oppsett.md §1.
+ * (from the National Population Register). Keys: docs/oppsett.md §2.
  */
 
 export interface VippsLoginConfig {

@@ -6,7 +6,7 @@ import { createAppleClientSecret, type AppleKeyConfig } from './clientSecret';
 /**
  * Sign in with Apple on the web (and in the iOS app's system browser): form_post callback, the name only
  * arrives on the very first login, ES256 client secret. The native iOS button is in ./native.ts.
- * Keys: docs/oppsett.md §3.
+ * Keys: docs/oppsett.md §4.
  */
 
 export interface AppleLoginConfig extends AppleKeyConfig {
