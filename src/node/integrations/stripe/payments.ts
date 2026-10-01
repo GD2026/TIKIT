@@ -2,7 +2,7 @@ import Stripe from 'stripe';
 import type { Logger, PaymentAdapter } from '../../../server/adapters/types';
 import { idemKey } from '../shared';
 
-/** Card payments through Stripe Checkout (TIKIT never sees card numbers). Keys: docs/oppsett.md §4. */
+/** Card payments through Stripe Checkout (TIKIT never sees card numbers). Keys: docs/oppsett.md §5. */
 
 export interface StripeConfig {
   secretKey: string;

@@ -120,6 +120,7 @@ Eksempel: kjøperen trykker «Betal» i kassen.
 | endre refusjonsregler | `src/shared/constants.ts` (`REFUND_POLICIES`) + `services/refunds.ts` |
 | koble til en ny betalingsleverandør | nytt `src/node/integrations/<navn>/payments.ts` som implementerer `PaymentAdapter` (`src/server/adapters/types.ts`), og koble det inn i `src/node/server.ts` |
 | legge til en ny innlogging | ny `OAuthAdapter` i `src/node/integrations/`, `ProviderId` i `shared/types.ts`, og en knapp i `web/app/auth.tsx` |
+| endre lommebok-kortene (Apple/Google Wallet) | innholdet: `src/node/integrations/apple/wallet.ts` (`applePassJson`) og `google/wallet.ts` (`googleWalletPayload`); dataene: ruten `/tickets/:id/wallet/:kind` i `src/server/routes/buying.ts`; knappene: `src/web/components/ticket/WalletButtons.tsx`; bildene: `npm run icons` (`public/wallet/`) |
 | endre databaseoppsett (SSL, pooler) | `src/node/db/connection.ts` |
 | endre tabeller og indekser | `src/node/db/sqlStore.ts` (`INDEX_FIELDS` og `UNIQUE_KEYS` i `src/server/store/types.ts`) |
 | endre sikkerhetsheadere | `src/node/security.ts` (nett) og `vite.config.ts` → `nativeCsp` (iOS) |

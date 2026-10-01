@@ -123,18 +123,30 @@ export interface Logger {
 
 export interface WalletPassInput {
   ticketId: string;
+  /**
+   * Identifies this version of the pass. It changes when the ticket's secret rotates (transfer, resale), so the
+   * new holder never gets the previous holder's pass – Apple and Google keep the first pass saved under an ID.
+   */
+  serial: string;
   number: string;
+  eventId: string;
   eventTitle: string;
-  venue: string;
+  venue: { name: string; address: string };
   startsAt: string;
+  endsAt: string;
+  doorsAt: string | null;
   holderName: string;
   typeName: string;
   seat: string | null;
+  /** The static TK2 code (src/shared/qr.ts): wallet passes can't rotate. */
   barcode: string;
   colors: { background: string; foreground: string; label: string };
   organizer: string;
+  /** The live ticket in TIKIT. */
+  ticketUrl: string;
 }
 
+/** Wallet passes (Apple .pkpass, Google Wallet save link). See src/node/integrations/apple/wallet.ts and google/wallet.ts. */
 export interface WalletAdapter {
   apple: ((input: WalletPassInput) => Promise<Uint8Array>) | null;
   google: ((input: WalletPassInput) => Promise<string>) | null;

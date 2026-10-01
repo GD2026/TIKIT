@@ -18,6 +18,17 @@ const child = spawn(process.execPath, ['dist/server/main.js'], {
     SEED_DEMO_DATA: 'true',
     CRON_INTERVAL_SECONDS: '0',
     SESSION_SECRET: 'e2e-session-secret-that-is-long-enough-123',
+    // Empty values win over .env (process.loadEnvFile never overrides), so a developer's real database and
+    // provider keys are never used by the tests – no demo data in Supabase, no real logins, payments or e-mail.
+    DATABASE_URL: '',
+    VIPPS_CLIENT_ID: '',
+    GOOGLE_CLIENT_ID: '',
+    APPLE_CLIENT_ID: '',
+    APPLE_KEY_ID: '',
+    STRIPE_SECRET_KEY: '',
+    RESEND_API_KEY: '',
+    APPLE_WALLET_CERT: '',
+    GOOGLE_WALLET_ISSUER_ID: '',
   },
 });
 const cleanup = () => {

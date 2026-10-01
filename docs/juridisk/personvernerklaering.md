@@ -1,6 +1,6 @@
 # Personvernerklæring for TIKIT
 
-*Sist oppdatert 28. september 2026. Samme tekst vises i appen på `/personvernerklaering`.*
+*Sist oppdatert 1. oktober 2026. Samme tekst vises i appen på `/personvernerklaering`.*
 
 > **Før publisering:** Fyll inn feltene i [hakeparenteser], og la en rådgiver lese gjennom teksten. Den bygger på hvordan TIKIT faktisk fungerer, men er ikke juridisk rådgivning.
 
@@ -49,6 +49,7 @@ Vi selger aldri opplysninger og bruker dem ikke til reklame eller profilering. D
 - **Mottakeren** av en billett du overfører, ser navnet ditt og hilsenen din.
 - **Leverandører som behandler data på våre vegne:** drift og hosting (Render, servere i Frankfurt, med nettverk fra Cloudflare), database (Supabase, servere i EU – [fjern punktet hvis dere ikke bruker Supabase]) og utsending av e-post (Resend).
 - **Selvstendige tjenester du selv velger å bruke:** Vipps MobilePay (innlogging og betaling), Stripe (kortbetaling), Google og Apple (innlogging). De behandler opplysningene etter sine egne personvernerklæringer.
+- **Lommebok, hvis du legger billetten der:** kortet inneholder navnet ditt, billettnummeret, arrangementet og QR-koden. Et Apple Lommebok-kort lages hos oss og lagres bare på enheten din (og i iCloud hvis du bruker det). Velger du Google Lommebok, sendes de samme opplysningene til Google, som lagrer kortet i Google-kontoen din etter sine egne vilkår. Ingenting sendes før du trykker på knappen, og kortet utløper etter arrangementet.
 - **Myndigheter** når loven krever det.
 
 ## 5. Overføring utenfor EØS

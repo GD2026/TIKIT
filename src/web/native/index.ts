@@ -6,9 +6,10 @@ import type { Transport } from '../api/client';
 import { setNativeHaptics } from '../lib/haptics';
 import { setNativeShare } from '../lib/share';
 import { setNativeFileSaver, setPublicOrigin } from '../lib/links';
+import { setNativeWalletAdder } from '../lib/wallet';
 import { routeForUrl } from './deepLinks';
 import { API_ORIGIN } from './config';
-import { nativeHaptic, nativeSaveText, nativeShare } from './device';
+import { nativeAddWalletPass, nativeHaptic, nativeSaveText, nativeShare } from './device';
 import { loadSession } from './session';
 import { createNativeTransport } from './transport';
 
@@ -22,6 +23,7 @@ export async function prepareNative(): Promise<Transport> {
   setNativeHaptics(nativeHaptic);
   setNativeShare(nativeShare);
   setNativeFileSaver(nativeSaveText);
+  setNativeWalletAdder(nativeAddWalletPass);
   // Links people share (events, transfers) point at the website, not at capacitor://localhost.
   setPublicOrigin(API_ORIGIN);
   return createNativeTransport();

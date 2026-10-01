@@ -11,14 +11,13 @@ import {
   SunMedium,
   Ticket as TicketIcon,
   Undo2,
-  Wallet,
   WifiOff,
 } from 'lucide-react';
 import type { TicketDTO } from '../../shared/types';
 import { formatNok } from '../../shared/money';
 import { formatDateShort, formatTime } from '../../shared/time';
 import { useApi } from '../app/context';
-import { qk, useConfig, useTicket, useTickets } from '../api/hooks';
+import { qk, useTicket, useTickets } from '../api/hooks';
 import { errorMessage } from '../api/client';
 import { Page } from '../components/layout/Page';
 import { IconTile, Row, Section } from '../components/ui/List';
@@ -28,10 +27,11 @@ import { CenterSpinner, QueryError, RequireLogin } from '../components/ui/States
 import { useConfirm, useToast } from '../components/ui/Overlays';
 import { TicketPass, passState } from '../components/ticket/TicketPass';
 import { ResaleSheet, TransferSheet } from '../components/ticket/TicketSheets';
+import { WalletButtons } from '../components/ticket/WalletButtons';
 import { useClockOffset, useWakeLock } from '../lib/hooks';
 import { apiUrl, canDownload, downloadApiFile, filesViaApp, googleCalendarUrl, mapsUrl } from '../lib/links';
 import { cn } from '../lib/cn';
-import { isIOS, isNativeApp } from '../lib/device';
+import { isIOS } from '../lib/device';
 
 function useOnline(): boolean {
   const [online, setOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine));
@@ -53,7 +53,6 @@ function TicketActions({ ticket }: { ticket: TicketDTO }) {
   const qc = useQueryClient();
   const toast = useToast();
   const confirm = useConfirm();
-  const config = useConfig().data;
   const [transferOpen, setTransferOpen] = useState(false);
   const [resaleOpen, setResaleOpen] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
@@ -93,23 +92,12 @@ function TicketActions({ ticket }: { ticket: TicketDTO }) {
     });
     if (ok) await run('refund', () => api.post(`/tickets/${ticket.id}/refund`), 'Billetten er refundert');
   };
-  const googleWallet = async () => {
-    setBusy('wallet');
-    try {
-      const res = await api.get<{ url: string }>(`/tickets/${ticket.id}/wallet/google`);
-      window.location.assign(res.url);
-    } catch (err) {
-      toast({ message: errorMessage(err), tone: 'error' });
-    } finally {
-      setBusy(null);
-    }
-  };
-
   const state = passState(ticket);
   const ownPurchase = !ticket.receivedFrom && (ticket.kind === 'paid' || ticket.kind === 'free' || ticket.kind === 'resale');
 
   return (
     <div className="mt-6">
+      {state === 'live' && <WalletButtons ticket={ticket} />}
       {ticket.transfer && (
         <div className="mx-4 mb-4 rounded-md bg-tint-soft px-4 py-3.5">
           <p className="text-headline font-semibold text-tint">Overføring venter</p>
@@ -172,34 +160,6 @@ function TicketActions({ ticket }: { ticket: TicketDTO }) {
               subtitle={ticket.refundDeadline ? `Frist ${formatDateShort(ticket.refundDeadline)} kl. ${formatTime(ticket.refundDeadline)}` : undefined}
               onClick={() => void refund()}
               disabled={busy === 'refund'}
-            />
-          )}
-        </Section>
-      )}
-
-      {state === 'live' && (config?.wallet.apple || config?.wallet.google) && (
-        <Section header="Lommebok" className="mx-4" footer="Lommebok-kort har en fast kode. Bruk helst den levende billetten i appen.">
-          {config.wallet.apple && canDownload && (
-            <Row
-              icon={
-                <IconTile color="#000000">
-                  <Wallet />
-                </IconTile>
-              }
-              title="Legg til i Apple Wallet"
-              href={apiUrl(`/tickets/${ticket.id}/wallet/apple`)}
-            />
-          )}
-          {config.wallet.google && !isNativeApp && (
-            <Row
-              icon={
-                <IconTile color="#1A73E8">
-                  <Wallet />
-                </IconTile>
-              }
-              title="Legg til i Google Wallet"
-              onClick={() => void googleWallet()}
-              disabled={busy === 'wallet'}
             />
           )}
         </Section>

@@ -29,6 +29,10 @@ export class TikitNativeWeb extends WebPlugin implements TikitNativePlugin {
     sessionStorage.removeItem(this.key);
   }
 
+  async addWalletPass(): Promise<never> {
+    throw this.unavailable('Lommebok finnes bare i iOS-appen.');
+  }
+
   async sha256(options: { value: string }): Promise<{ base64url: string }> {
     const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(options.value)));
     const base64url = btoa(String.fromCharCode(...digest)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');

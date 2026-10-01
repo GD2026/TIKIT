@@ -3,7 +3,7 @@ import type { CreatePaymentArgs, Logger, PaymentAdapter, ProviderPaymentStatus }
 import { idemKey, safeEqual } from '../shared';
 import { VIPPS_SYSTEM_HEADERS, createVippsTokenSource, type VippsApiConfig } from './common';
 
-/** Vipps MobilePay ePayment API: reserve, capture after the tickets are issued, refund. Keys: docs/oppsett.md §1. */
+/** Vipps MobilePay ePayment API: reserve, capture after the tickets are issued, refund. Keys: docs/oppsett.md §2. */
 
 export interface VippsPaymentConfig extends VippsApiConfig {
   /** Secret returned when the webhook was registered (scripts/register-vipps-webhook.ts). */

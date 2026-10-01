@@ -2,7 +2,7 @@
 # Lag prosjektet i Supabase først (region Frankfurt, eu-central-1) og lim inn «Session pooler»-adressen
 # i DATABASE_URL når Render spør. Tabellene lages automatisk ved første oppstart, med row level security
 # slik at Supabase sitt REST-API ikke kan lese dem. Sikkerhetskopi: Supabase Pro har daglig backup –
-# gratisplanen har ingen og settes på pause etter en uke uten trafikk (se docs/oppsett.md §6).
+# gratisplanen har ingen og settes på pause etter en uke uten trafikk (se docs/oppsett.md §1).
 # Oppsett i Render: New → Blueprint → velg repoet → Blueprint Path: render.supabase.yaml
 services:
   - type: web
@@ -77,6 +77,15 @@ services:
       - key: RESEND_API_KEY
         sync: false
       - key: MAIL_FROM
+        sync: false
+      # Lommebok (valgfritt, docs/oppsett.md §9): Apple Wallet-sertifikat og -nøkkel, Google Wallet-utsteder og tjenestekonto
+      - key: APPLE_WALLET_CERT
+        sync: false
+      - key: APPLE_WALLET_KEY
+        sync: false
+      - key: GOOGLE_WALLET_ISSUER_ID
+        sync: false
+      - key: GOOGLE_WALLET_SERVICE_ACCOUNT
         sync: false
       # iOS-appen (docs/ios.md): bundle ID, f.eks. no.tikit.app
       - key: APPLE_BUNDLE_IDS

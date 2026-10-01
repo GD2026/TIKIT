@@ -2,6 +2,7 @@ import Foundation
 import Capacitor
 import AuthenticationServices
 import CryptoKit
+import PassKit
 import Security
 
 /// TIKIT's own native features for the web app. The TypeScript side is src/web/native/plugin.ts.
@@ -10,8 +11,9 @@ import Security
 ///  - signInWithApple:   the native «Logg på med Apple» sheet (App Store Review Guideline 4.8)
 ///  - get/set/clearSession: the session token, kept in the Keychain on this device only
 ///  - sha256:            hashing, in case Web Crypto isn't available in the web view
+///  - addWalletPass:     Apple's «Legg til i Lommebok» sheet for a ticket (.pkpass from the server)
 @objc(TikitNativePlugin)
-public class TikitNativePlugin: CAPPlugin, CAPBridgedPlugin, ASWebAuthenticationPresentationContextProviding, ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
+public class TikitNativePlugin: CAPPlugin, CAPBridgedPlugin, ASWebAuthenticationPresentationContextProviding, ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding, PKAddPassesViewControllerDelegate {
     public let identifier = "TikitNativePlugin"
     public let jsName = "TikitNative"
     public let pluginMethods: [CAPPluginMethod] = [
@@ -20,12 +22,15 @@ public class TikitNativePlugin: CAPPlugin, CAPBridgedPlugin, ASWebAuthentication
         CAPPluginMethod(name: "getSession", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "setSession", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "clearSession", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "sha256", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "sha256", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "addWalletPass", returnType: CAPPluginReturnPromise)
     ]
 
     private var webSession: ASWebAuthenticationSession?
     private var appleController: ASAuthorizationController?
     private var appleCall: CAPPluginCall?
+    private var walletCall: CAPPluginCall?
+    private var walletPass: PKPass?
 
     override public func load() {
         // Keychain items outlive the app. A fresh install must not sign in as whoever used the app before.
@@ -172,6 +177,52 @@ public class TikitNativePlugin: CAPPlugin, CAPBridgedPlugin, ASWebAuthentication
             .replacingOccurrences(of: "/", with: "_")
             .replacingOccurrences(of: "=", with: "")
         call.resolve(["base64url": base64url])
+    }
+
+    // MARK: - Apple Wallet
+
+    @objc func addWalletPass(_ call: CAPPluginCall) {
+        guard let base64 = call.getString("data"), let data = Data(base64Encoded: base64) else {
+            call.reject("data mangler", "INVALID")
+            return
+        }
+        DispatchQueue.main.async {
+            guard PKAddPassesViewController.canAddPasses() else {
+                call.reject("Lommebok er ikke tilgjengelig på denne enheten", "UNAVAILABLE")
+                return
+            }
+            let pass: PKPass
+            do {
+                pass = try PKPass(data: data)
+            } catch {
+                call.reject("Billettkortet kunne ikke leses", "INVALID")
+                return
+            }
+            if PKPassLibrary().containsPass(pass) {
+                call.resolve(["added": true])
+                return
+            }
+            guard let controller = PKAddPassesViewController(pass: pass), let presenter = self.bridge?.viewController else {
+                call.reject("Kunne ikke åpne Lommebok", "FAILED")
+                return
+            }
+            controller.delegate = self
+            self.walletCall = call
+            self.walletPass = pass
+            presenter.present(controller, animated: true)
+        }
+    }
+
+    public func addPassesViewControllerDidFinish(_ controller: PKAddPassesViewController) {
+        let call = walletCall
+        let pass = walletPass
+        walletCall = nil
+        walletPass = nil
+        controller.dismiss(animated: true) {
+            // «Avbryt» and «Legg til» both end here; the library tells which one it was.
+            let added = pass.map { PKPassLibrary().containsPass($0) } ?? false
+            call?.resolve(["added": added])
+        }
     }
 
     // MARK: - Helpers

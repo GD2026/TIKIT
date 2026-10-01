@@ -1,13 +1,15 @@
 /**
  * npm run doctor            – what is connected, what is missing, and which URLs to register where
  * npm run doctor -- --online – also tries every key against the real service (database, Vipps, Google,
- *                             Apple, Stripe, Resend). Nothing is changed anywhere.
+ *                             Apple, Stripe, Google Wallet, Resend). Nothing is changed anywhere.
  *
  * Reads .env like the server does. Never prints secrets.
  */
 import { existsSync } from 'node:fs';
 import { loadConfig, type NodeConfig } from '../src/node/config';
 import { databaseSetup } from '../src/node/db/connection';
+import { loadAppleWalletCredentials } from '../src/node/integrations/apple/wallet';
+import { parseGoogleServiceAccount } from '../src/node/integrations/google/wallet';
 
 const online = process.argv.includes('--online');
 const bold = (s: string) => `\x1b[1m${s}\x1b[0m`;
@@ -45,7 +47,7 @@ function report(cfg: NodeConfig): void {
     const db = databaseSetup(e.DATABASE_URL, e);
     add(db.warnings.length ? WARN : OK, 'Database', db.description, db.warnings);
   } else {
-    add(cfg.production ? BAD : OFF, 'Database', `innebygd PGlite i ${e.DATA_DIR} (bare for utvikling)`, ['Supabase: Project → Connect → «Session pooler» → kopier URI-en til DATABASE_URL (se docs/oppsett.md §6)']);
+    add(cfg.production ? BAD : OFF, 'Database', `innebygd PGlite i ${e.DATA_DIR} (bare for utvikling)`, ['Supabase: Project → Connect → «Session pooler» → kopier URI-en til DATABASE_URL (se docs/oppsett.md §1)']);
   }
 
   // ── Innlogging ──
@@ -85,6 +87,30 @@ function report(cfg: NodeConfig): void {
       ...(e.STRIPE_WEBHOOK_SECRET ? [] : ['STRIPE_WEBHOOK_SECRET mangler']),
     ]);
   } else add(OFF, 'Stripe (kort)', 'ikke satt opp (valgfritt)', ['STRIPE_SECRET_KEY og STRIPE_WEBHOOK_SECRET (dashboard.stripe.com)']);
+
+  // ── Lommebok ──
+  if (cfg.wallet.apple) {
+    try {
+      const creds = loadAppleWalletCredentials(cfg.wallet.apple);
+      const until = creds.validTo.toISOString().slice(0, 10);
+      const daysLeft = (creds.validTo.getTime() - Date.now()) / 86_400_000;
+      add(daysLeft <= 0 ? BAD : daysLeft < 30 ? WARN : OK, 'Apple Wallet', `${creds.passTypeId} · team ${creds.teamId} · gyldig til ${until}`, daysLeft < 30 ? ['Forny Pass Type ID-sertifikatet i Apple Developer (se docs/oppsett.md §9)'] : []);
+    } catch (err) {
+      add(BAD, 'Apple Wallet', err instanceof Error ? err.message : String(err), ['Se docs/oppsett.md §9']);
+    }
+  } else {
+    add(some(e.APPLE_WALLET_CERT, e.APPLE_WALLET_KEY) ? WARN : OFF, 'Apple Wallet', 'ikke satt opp (valgfritt)', ['APPLE_WALLET_CERT og APPLE_WALLET_KEY (Pass Type ID i developer.apple.com, se docs/oppsett.md §9)']);
+  }
+  if (cfg.wallet.google) {
+    try {
+      const account = parseGoogleServiceAccount(cfg.wallet.google.serviceAccount);
+      add(OK, 'Google Wallet', `utsteder ${cfg.wallet.google.issuerId} · ${account.clientEmail}`, ['Tjenestekontoen må være lagt til som bruker under Users i Google Pay & Wallet Console']);
+    } catch (err) {
+      add(BAD, 'Google Wallet', err instanceof Error ? err.message : String(err), ['Se docs/oppsett.md §9']);
+    }
+  } else {
+    add(some(e.GOOGLE_WALLET_ISSUER_ID, e.GOOGLE_WALLET_SERVICE_ACCOUNT) ? WARN : OFF, 'Google Wallet', 'ikke satt opp (valgfritt)', ['GOOGLE_WALLET_ISSUER_ID og GOOGLE_WALLET_SERVICE_ACCOUNT (pay.google.com/business/console, se docs/oppsett.md §9)']);
+  }
 
   // ── E-post ──
   if (e.RESEND_API_KEY) add(e.MAIL_FROM ? OK : BAD, 'E-post (Resend)', e.MAIL_FROM ?? 'MAIL_FROM mangler');
@@ -139,6 +165,31 @@ async function probes(cfg: NodeConfig): Promise<void> {
       const res = await fetch('https://api.stripe.com/v1/balance', { headers: { Authorization: `Bearer ${e.STRIPE_SECRET_KEY}` } });
       if (!res.ok) throw new Error(`svarte ${res.status}`);
       return 'nøkkelen virker';
+    });
+  }
+  if (cfg.wallet.google) {
+    const g = cfg.wallet.google;
+    await probe('Google Wallet', async () => {
+      const { importPKCS8, SignJWT } = await import('jose');
+      const account = parseGoogleServiceAccount(g.serviceAccount);
+      const assertion = await new SignJWT({ scope: 'https://www.googleapis.com/auth/wallet_object.issuer' })
+        .setProtectedHeader({ alg: 'RS256', typ: 'JWT' })
+        .setIssuer(account.clientEmail)
+        .setAudience('https://oauth2.googleapis.com/token')
+        .setIssuedAt()
+        .setExpirationTime('5m')
+        .sign(await importPKCS8(account.privateKey, 'RS256'));
+      const token = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion }).toString(),
+      });
+      if (!token.ok) throw new Error(`Google godtok ikke tjenestekontoen (${token.status})`);
+      const { access_token } = (await token.json()) as { access_token: string };
+      const res = await fetch(`https://walletobjects.googleapis.com/walletobjects/v1/issuer/${g.issuerId}`, { headers: { Authorization: `Bearer ${access_token}` } });
+      if (res.status === 403 || res.status === 404) throw new Error(`tjenestekontoen har ikke tilgang til utsteder ${g.issuerId} (legg den til under Users i Wallet-konsollen)`);
+      if (!res.ok) throw new Error(`svarte ${res.status}`);
+      return `tjenestekontoen har tilgang til utsteder ${g.issuerId}`;
     });
   }
   if (e.RESEND_API_KEY) {

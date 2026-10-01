@@ -23,6 +23,7 @@
 | 2.3.10 Andre plattformer | Hjelp nevnte Android og «Installer app» | Skjult i iOS-appen. Google Wallet er skjult i appen. | `Help.tsx`, `TicketDetail.tsx` |
 | 2.5.2 Egen kode | – | Appen har all kode i bundlen, uten nedlasting av kode og uten fjern-URL | `vite.config.ts` (mode `native`), `capacitor.config.ts` |
 | 3.1.3(e) Betaling | – | Billetter er tjenester som brukes utenfor appen, så de skal betales med Vipps eller kort, ikke med kjøp i appen. Vipps åpnes i Vipps-appen, kort i Safari-ark | `src/web/native/payments.ts` |
+| 4.2 Minimum funksjonalitet | Hybridapp med få native funksjoner | «Legg til i Apple Lommebok» med Apples eget ark (PassKit). Billetten åpnes fra låseskjermen og med sideknappen | `TikitNativePlugin.swift`, `src/web/components/ticket/WalletButtons.tsx`, `src/node/integrations/apple/wallet.ts` |
 | 4.8 Innlogging | Apple fantes bare som nettinnlogging | Innebygd «Logg på med Apple» (AuthenticationServices), like synlig som Google | `ios/App/App/TikitNativePlugin.swift`, `src/node/integrations/apple/native.ts` |
 | 4.8 / Google | Google avviser innlogging i appens egen web view | Innlogging i `ASWebAuthenticationSession`, med engangskode tilbake til appen | `src/web/native/auth.ts`, `src/server/services/nativeAuth.ts` |
 | 5.1.1(i) Personvern | Erklæringen dekket ikke appen | Oppdatert: nøkkelring, kamera, rapporter, Apple-nøkkel, Supabase | `Legal.tsx`, `docs/juridisk/` |
@@ -58,7 +59,7 @@ Tegn: ✅ oppfylt · ⚠️ krever noe av deg · ➖ gjelder ikke TIKIT
 | 2.3.6 Aldersgrense og sosiale medier | ⚠️ | Svarene står i [metadata.md](metadata.md#aldersgrense). TIKIT har ingen sosial feed, så svaret på spørsmålet om sosiale medier er «nei». |
 | 2.3.10 Andre plattformer | ✅ | Android og Google Wallet er skjult i appen. «Google» står bare som innloggingsvalg. |
 | 2.4.1 iPad | ⚠️ | Appen kjører på iPad (`TARGETED_DEVICE_FAMILY = 1,2`) og tilpasser seg bredden. **Du må:** teste på iPad-simulator. App Review tester på iPad Air 11" og iPhone 17 Pro Max. |
-| 2.5.1 Offentlige API-er | ✅ | Bare Capacitor, AuthenticationServices, Security og CryptoKit. |
+| 2.5.1 Offentlige API-er | ✅ | Bare Capacitor, AuthenticationServices, Security, CryptoKit og PassKit. |
 | 2.5.2 Kode i bundlen | ✅ | Ingen fjern-URL i web view og ingen OTA-oppdateringer. Nye versjoner går gjennom App Review. |
 | 2.5.4 Bakgrunnsmoduser | ✅ | Ingen. |
 | 2.5.5 IPv6 | ✅ | Bare vertsnavn. |
@@ -92,10 +93,11 @@ Dette er den reelle risikoen for en hybridapp. Det som taler for TIKIT:
 - Billetten virker uten nett: den levende QR-koden lages på telefonen, og billettene lagres i appen.
 - Dørskanner med kamera, lyd og lommelykt. Den virker uten nett og synkroniserer etterpå.
 - Innebygd «Logg på med Apple», innloggingen i nøkkelringen og haptisk respons.
+- Billetten i Apple Lommebok med Apples eget «Legg til»-ark (PassKit), på låseskjermen når arrangementet nærmer seg.
 - Deleark, kalender via delearket og universal links for arrangementer og overføringer.
 - En tjeneste med verdi over tid: kjøp, overføring, videresalg, refusjon og kø.
 
-**Hvis Apple likevel avviser for 4.2:** legg til push-varsler for billettslipp og påminnelser, som er det vanligste neste steget for en billettapp, og/eller Apple Wallet-kort. Begge er beskrevet som neste steg i [docs/ios.md](../ios.md#neste-steg). Svar i Resolution Center med listen over.
+**Hvis Apple likevel avviser for 4.2:** legg til push-varsler for billettslipp og påminnelser, som er det vanligste neste steget for en billettapp. Det er beskrevet i [docs/ios.md](../ios.md#neste-steg). Svar i Resolution Center med listen over. Apple Wallet er allerede med, så sett opp `APPLE_WALLET_*` på serveren før innsending, slik at anmelderen ser knappen.
 
 ### 5. Juss
 
@@ -106,7 +108,7 @@ Dette er den reelle risikoen for en hybridapp. Det som taler for TIKIT:
 | 5.1.1(v) Sletting av konto | ✅ | Profil → Personvern og data → Slett kontoen. Apple-tilgangen trekkes tilbake. *Merk:* sletting stoppes hvis man har gyldige billetter til kommende arrangementer. Billettene kan da overføres eller refunderes i appen først. Dette er forklart i review-notatene. |
 | 5.1.1(ix) Regulerte felt | ✅ ⚠️ | Ikke et regulert felt, men appen samler inn fødselsdato. **Anbefaling:** publiser under en organisasjonskonto (Din Russetid AS, D-U-N-S-nummer), ikke en personlig konto. |
 | 5.1.2 Deling av data og ATT | ✅ | Ingen sporing, ingen annonser og ingen analyse, og derfor ingen ATT-dialog. Svarene til App Privacy står i [app-privacy.md](app-privacy.md). |
-| 5.2 Opphavsrett | ✅ ⚠️ | Egne ikoner og egne bilder (Higgsfield). Knappene for Vipps, Google og Apple følger merkevarereglene. Sjekk Vipps-knappen mot Vipps' designretningslinjer. |
+| 5.2 Opphavsrett | ✅ ⚠️ | Egne ikoner og egne bilder (Higgsfield). Knappene for Vipps, Google og Apple følger merkevarereglene. Sjekk Vipps-knappen mot Vipps' designretningslinjer, og knappen «Legg til i Apple Lommebok» mot Apples «Add to Apple Wallet Guidelines» (bytt eventuelt til det offisielle merket i `WalletButtons.tsx`). |
 | 5.3 Spill og lotteri | ✅ | Loddtrekningen i køen er gratis rekkefølge, uten innsats og uten premie. Det er ikke lotteri. Forklart i review-notatene. |
 | 5.6.1 Vurderinger | ✅ | Ingen egne vurderingsdialoger. |
 

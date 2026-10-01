@@ -5,7 +5,7 @@ TIKIT for iPhone og iPad. Det er **samme React-app som nettsiden**, pakket i et 
 | Mappe | Hva |
 | --- | --- |
 | `ios/` | Xcode-prosjektet. Egen Swift-kode: `ios/App/App/TikitNativePlugin.swift` (innlogging, «Logg på med Apple», nøkkelring) og `TikitBridgeViewController.swift` |
-| `src/web/native/` | TypeScript-laget: API med token, innlogging, betaling, dype lenker, frakoblede billetter, haptikk, delingsark |
+| `src/web/native/` | TypeScript-laget: API med token, innlogging, betaling, dype lenker, frakoblede billetter, haptikk, delingsark, Apple Lommebok |
 
 > **Status:** Appen **kompilerer uten feil og advarsler** med Xcode 26.6 (Release, iOS-enhet, uten signering). Det sjekker GitHub Actions (`.github/workflows/ios.yml`) hver gang `ios/` eller pakkene endres. Web-laget er testet i Chromium (`tests/e2e/ios-app.spec.ts`). Det som gjenstår, er å kjøre appen på en ekte iPhone med signering (sjekklisten i §4).
 
@@ -22,7 +22,7 @@ På [developer.apple.com](https://developer.apple.com/account/resources/identifi
 1. **App ID** (type App): bundle ID `no.tikit.app` (eller ditt eget). Kryss av for:
    - **Sign in with Apple**
    - **Associated Domains**
-2. **Services ID** for nettsiden (hvis ikke allerede laget, se [oppsett.md §3](oppsett.md#3-sign-in-with-apple)): `no.tikit.web`, knyttet til App ID-en over.
+2. **Services ID** for nettsiden (hvis ikke allerede laget, se [oppsett.md §4](oppsett.md#4-sign-in-with-apple)): `no.tikit.web`, knyttet til App ID-en over.
 3. **Key** med *Sign in with Apple* (samme nøkkel som nettsiden bruker). Last ned `.p8`-filen.
 
 ## 2. Serveren
@@ -77,6 +77,7 @@ Gå gjennom dette på en ekte iPhone. Simulatoren har verken Vipps-appen eller k
 - [ ] Kjøp med **Vipps**: Vipps-appen åpnes og sender deg tilbake til TIKIT med billettene.
 - [ ] Kjøp med **kort**: Stripe åpnes i et ark som lukker seg selv når betalingen er gjennom.
 - [ ] Flymodus: billetten vises fortsatt med levende QR-kode.
+- [ ] «Legg til i Apple Lommebok» (krever `APPLE_WALLET_*` på serveren): Apples ark åpnes, kortet legges til, og to trykk på sideknappen viser billetten. Skann kortet med dørskanneren.
 - [ ] Del et arrangement: lenken er `https://tikit.no/e/…`. Trykk på den i Meldinger, og appen åpnes.
 - [ ] Dørskanneren: kameraet spør om tilgang med TIKITs egen tekst.
 - [ ] «Legg i kalenderen»: delearket åpnes, og du kan velge Kalender.
@@ -120,6 +121,10 @@ App                                   Server                           Vipps / G
 - **Kort:** Stripe Checkout åpnes i et Safari-ark. Appen sjekker bestillingen hvert 3. sekund og lukker arket når den er betalt.
 - Billetter er tjenester som brukes utenfor appen, så de skal **ikke** betales med kjøp i appen (Apple 3.1.3(e)).
 
+### Lommebok
+
+Knappen «Legg til i Apple Lommebok» henter `.pkpass`-filen med appens token (`src/web/lib/wallet.ts`) og viser Apples eget ark (`PKAddPassesViewController` i `TikitNativePlugin.swift`). Appen trenger ingen ekstra tillatelse eller entitlement for å legge til kort. I Safari gjør en vanlig lenke det samme. Kortet har en fast kode, se [oppsett.md §9](oppsett.md#9-lommebok-apple-wallet-og-google-wallet).
+
 ### Uten nett
 
 Nettsiden bruker en service worker til frakoblede billetter. Appen har ingen, så `src/web/native/offline.ts` tar vare på siste svar for `/me` og `/tickets` i appen, i opptil 14 dager. Alt slettes ved utlogging og når en annen logger inn.
@@ -134,9 +139,10 @@ Nettsiden bruker en service worker til frakoblede billetter. Appen har ingen, s�
 | endre kameratekst | `NSCameraUsageDescription` i `Info.plist` |
 | legge til en Capacitor-plugin | `npm i -D @capacitor/…` → `npx cap sync ios`, og oppdater `PrivacyInfo.xcprivacy` hvis pluginen bruker API-er som krever begrunnelse |
 | legge til egen native funksjon | `TikitNativePlugin.swift` + `src/web/native/plugin.ts` (+ `plugin.web.ts` for nettleseren) |
+| endre lommebok-kortet | `src/node/integrations/apple/wallet.ts` (se [oppsett.md §9](oppsett.md#9-lommebok-apple-wallet-og-google-wallet)) |
 
 ## Neste steg
 
 - **Push-varsler** for billettslipp og påminnelser: `@capacitor/push-notifications`, APNs-nøkkel (samme type `.p8`), lagring av enhetstokener og utsending fra serveren i `runCron`. Dette er det beste svaret hvis Apple mener appen har for lite native funksjonalitet (4.2).
-- **Apple Wallet-kort**: krever et Pass Type ID-sertifikat. Merk at et Wallet-kort har fast strekkode, mens TIKITs levende QR-kode er det som stopper skjermbilde-svindel.
+- **Oppdatering av lommebok-kort:** Apple Wallet og Google Wallet er på plass (oppsett.md §9), men kortene oppdateres ikke når arrangøren endrer tid eller sted, og de blir ikke ugyldige i lommeboken ved overføring (bare i døra). Neste steg er Apples oppdateringstjeneste (`webServiceURL` og push med Pass Type ID-sertifikatet) og Google Wallet REST API (`state: INACTIVE`).
 - **Vipps app-til-app-innlogging** (`requested_flow=app_to_app`): gir automatisk retur fra Vipps-appen til innloggingsarket. Uten det bytter brukeren selv tilbake til TIKIT etter å ha godkjent i Vipps, og innloggingen fortsetter av seg selv.

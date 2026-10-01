@@ -1,6 +1,6 @@
 # TIKIT Privacy Policy
 
-*Last updated 28 September 2026. English version of the Norwegian [personvernerklaering.md](personvernerklaering.md). If the two differ, the Norwegian version applies.*
+*Last updated 1 October 2026. English version of the Norwegian [personvernerklaering.md](personvernerklaering.md). If the two differ, the Norwegian version applies.*
 
 > **Before publishing:** fill in the [bracketed] fields and have an adviser review the text. It reflects how TIKIT actually works, but it is not legal advice.
 
@@ -49,6 +49,7 @@ We never sell data or use it for advertising or profiling. The only automated de
 - **The recipient** of a ticket you transfer sees your name and your note.
 - **Processors acting on our behalf:** hosting and operations (Render, servers in Frankfurt, with network services from Cloudflare), database (Supabase, servers in the EU – [remove if Supabase is not used]) and e-mail delivery (Resend).
 - **Independent services you choose to use:** Vipps MobilePay (sign-in and payment), Stripe (card payment), Google and Apple (sign-in). They process data under their own privacy policies.
+- **Wallet, if you add your ticket:** the pass holds your name, the ticket number, the event and the QR code. An Apple Wallet pass is made by us and stored only on your device (and in iCloud if you use it). If you choose Google Wallet, the same details are sent to Google, which keeps the pass in your Google account under its own terms. Nothing is sent until you tap the button, and the pass expires after the event.
 - **Authorities** where the law requires it.
 
 ## 5. Transfers outside the EEA
