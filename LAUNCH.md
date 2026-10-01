@@ -1,6 +1,6 @@
 # TIKIT – lansering
 
-*Oppdatert 28. september 2026*
+*Oppdatert 1. oktober 2026*
 
 | | Status |
 | --- | --- |
@@ -15,7 +15,7 @@
 ## Kontroller (kjørt 28.09.2026)
 
 - TypeScript og ESLint: ingen feil
-- 104 enhets- og API-tester (minnelager), inkludert iOS-innlogging, Apple-innlogging og tilbakekalling, App Review-tilgang, moderering, Supabase-oppsett og konfigurasjon
+- 115 enhets- og API-tester (minnelager), inkludert iOS-innlogging, Apple-innlogging og tilbakekalling, App Review-tilgang, moderering, Supabase-oppsett, konfigurasjon og lommebok-kort (signert `.pkpass` kontrollert med openssl, Google-lenke, innsjekk med kortet og at det slutter å virke etter overføring)
 - API-testene mot SQL-lageret: PGlite, og mot ekte Postgres (43 flyttester og 33 lagringstester)
 - 24 ende-til-ende-tester i Chromium (iPhone lys, iPhone mørk, PC) med tilgjengelighetssjekk (axe), og iOS-bygget kjørt mot API-et fra en annen opprinnelse (CORS, token, retur fra betaling, billett uten nett)
 - Produksjonsbygget og iOS-bygget (`vite --mode native`) går gjennom. Nettbygget inneholder ingen iOS-kode.
@@ -64,6 +64,7 @@ Sikkerhet, samsvar og full go/no-go-vurdering står i [docs/go-no-go.md](docs/go
 6. **Database og produksjon på Render.** Med **Supabase:** lag prosjektet (Frankfurt, Pro-plan for backup) og bruk Blueprinten `render.supabase.yaml` (se [docs/oppsett.md §1](docs/oppsett.md#1-database-supabase)). Uten Supabase: `render.yaml`. Fyll inn nøklene, kjør `npm run doctor -- --online`, registrer Vipps-webhooken og følg sjekklisten i [docs/drift.md](docs/drift.md).
 7. **Google og Apple:** Google-innlogging er gratis. Apple-innlogging krever Apple Developer Program og er påkrevd for iOS-appen når Google tilbys. Stripe for kort er valgfritt.
    - **iOS-appen:** Apple Developer (organisasjon), App ID med *Sign in with Apple* og *Associated Domains*, `APPLE_BUNDLE_IDS` på serveren, deretter `npm run ios` på Macen, TestFlight og innsending etter [docs/app-store/](docs/app-store/README.md).
+   - **Lommebok (valgfritt):** Pass Type ID-sertifikat fra Apple (`APPLE_WALLET_CERT`, `APPLE_WALLET_KEY`) og en utstederkonto i Google Pay & Wallet Console (`GOOGLE_WALLET_*`). Steg for steg i [docs/oppsett.md §9](docs/oppsett.md#9-lommebok-apple-wallet-og-google-wallet).
 8. **Juridisk og regnskap.** Fyll inn adresse og support-e-post i `docs/juridisk/`, og få kjøpsvilkår og personvern gjennomgått av en rådgiver. Lag en arrangøravtale, godta databehandleravtalene hos Render og Resend, og avklar MVA på servicegebyret med regnskapsfører.
 9. **Første ekte test.** Gjør kjøp, refusjon, overføring, videresalg og innsjekk med ekte Vipps før dere åpner salget.
 
@@ -72,6 +73,7 @@ Sikkerhet, samsvar og full go/no-go-vurdering står i [docs/go-no-go.md](docs/go
 ## Kjente begrensninger (bevisst utsatt)
 
 - iOS-appen har ikke push-varsler ennå. Det er neste steg hvis Apple mener appen har for lite native funksjonalitet (4.2). Se [docs/ios.md](docs/ios.md#neste-steg).
+- Lommebok-kort har en fast QR-kode, så et skjermbilde av kortet slipper inn den som kommer først. Kortene oppdateres ikke når tid eller sted endres, og blir bare ugyldige i døra (ikke i lommeboken) ved overføring eller refusjon.
 - Demobildene fra Higgsfield må lastes ned på en maskin med vanlig internett (`npm run demo:images`).
 
 - Grensen for antall forespørsler holdes i minnet per server-instans.

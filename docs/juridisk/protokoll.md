@@ -18,6 +18,7 @@ Dette er protokollen over behandlingsaktiviteter (GDPR art. 30), listen over lev
 | Arrangører og utbetaling | Arrangører | Organisasjon, team, kontonummer | Avtale | – | Så lenge arrangøren er aktiv + bokføringstid |
 | Moderering (rapporter, skjulte arrangører) | Alle som rapporterer; kjøpere | Grunn, beskrivelse, bruker-ID (hvis innlogget); hvilke arrangører en person har skjult | Berettiget interesse (trygg tjeneste); avtale | Plattformadmin, support-e-post | Rapporter 1 år etter behandling; skjulte arrangører til de vises igjen eller kontoen slettes |
 | iOS-appen | Brukere av appen | Innloggingsøkt i nøkkelringen på enheten, frakoblede billetter i appen | Avtale | – (bare på enheten) | Til utlogging |
+| Lommebok-kort (Apple/Google Wallet) | Kjøpere som legger billetten i lommeboken | Navn på billett, billettnummer, arrangement, fast QR-kode | Avtale (kjøperen ber om kortet) | Google (bare ved Google Lommebok); Apple-kort lagres bare på enheten | TIKIT lagrer ingenting nytt; kortet utløper 6 timer etter arrangementet |
 | Apple-innlogging (tilbakekalling) | Brukere som logger inn med Apple | Kryptert tilgangsnøkkel fra Apple | Rettslig/avtale (Apples krav om tilbakekalling ved sletting) | Apple (ved sletting) | Til kontoen slettes |
 
 Slettingen i tabellen skjer automatisk hver dag (`src/server/services/retention.ts`). Endrer du en periode, må du også endre personvernerklæringen.
@@ -34,6 +35,7 @@ Slettingen i tabellen skjer automatisk hver dag (`src/server/services/retention.
 | Vipps MobilePay | Selvstendig ansvarlig | Innlogging og betaling | Avtale om nettbetaling og innlogging |
 | Stripe (hvis kort) | Selvstendig ansvarlig for betalingsdata | Kortbetaling | Stripe-avtale |
 | Google, Apple | Selvstendig ansvarlige | Innlogging | Følg deres vilkår for innlogging |
+| Google (Google Wallet API, hvis den brukes) | Selvstendig ansvarlig for kortet i brukerens Google-konto | Navn, billettnummer, arrangement og QR-kode når kjøperen velger Google Lommebok | Godta vilkårene for Google Pay & Wallet Console og API-et |
 | Arrangører | Selvstendig ansvarlige for egne deltakere | Deltakerlister | **Arrangøravtale** med personvernklausul – mangler, må lages |
 
 ## 3. Vurderinger

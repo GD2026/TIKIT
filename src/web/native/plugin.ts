@@ -22,6 +22,11 @@ export interface TikitNativePlugin {
   clearSession(): Promise<void>;
   /** SHA-256 of a UTF-8 string as base64url – fallback when Web Crypto isn't available in the web view. */
   sha256(options: { value: string }): Promise<{ base64url: string }>;
+  /**
+   * Shows Apple's «Legg til i Lommebok» sheet for a .pkpass (base64). `added` is true when the pass is in
+   * Wallet afterwards. Rejects with 'UNAVAILABLE' on devices without Wallet.
+   */
+  addWalletPass(options: { data: string }): Promise<{ added: boolean }>;
 }
 
 export const TikitNative = registerPlugin<TikitNativePlugin>('TikitNative', {

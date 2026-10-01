@@ -13,7 +13,7 @@ function Part({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-const UPDATED = '28. september 2026';
+const UPDATED = '1. oktober 2026';
 
 /** The operator's name and contact line as configured on the server (OPERATOR_NAME, OPERATOR_ORG_NUMBER, SUPPORT_EMAIL). */
 function useOperator() {
@@ -163,6 +163,11 @@ function PrivacyPolicy() {
           (Resend). Vipps MobilePay, Stripe, Google og Apple
           behandler opplysninger etter sine egne vilkår når du bruker dem. Noen leverandører er selskaper i USA. Overføring skjer da med grunnlag i EU–USA-rammeverket for personvern
           eller EUs standardavtaler.
+        </p>
+        <p>
+          Legger du billetten i Apple Lommebok eller Google Lommebok, får kortet navnet ditt, billettnummeret, arrangementet og QR-koden. Apple-kortet lages hos oss og lagres bare på
+          enheten din (og i iCloud hvis du bruker det). Til Google Lommebok sendes de samme opplysningene til Google, som lagrer kortet i Google-kontoen din etter sine egne vilkår. Ingenting
+          sendes før du trykker på knappen, og kortet utløper etter arrangementet.
         </p>
       </Part>
       <Part title="Hvor lenge">

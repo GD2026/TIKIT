@@ -13,7 +13,7 @@ Uten nøkler kjører appen i **demomodus**: innlogging og betaling simuleres, s�
 
 I eksemplene er domenet `tikit.no`. Bytt til ditt eget. `PUBLIC_URL` må være nøyaktig adressen brukerne ser (https, uten skråstrek på slutten). iOS-appen bruker samme adresse.
 
-**Rekkefølge som fungerer:** 1) database, 2) Vipps, Google og Apple, 3) betaling, 4) e-post, 5) iOS-appen ([ios.md](ios.md)).
+**Rekkefølge som fungerer:** 1) database, 2) Vipps, Google og Apple, 3) betaling, 4) e-post, 5) iOS-appen ([ios.md](ios.md)), 6) lommebok (valgfritt).
 
 | Tjeneste | Påkrevd i drift? | Nøkler |
 | --- | --- | --- |
@@ -24,6 +24,7 @@ I eksemplene er domenet `tikit.no`. Bytt til ditt eget. `PUBLIC_URL` må være n
 | [Stripe](#5-kortbetaling-stripe) | Valgfritt | `STRIPE_*` |
 | [Resend](#6-e-post-resend) | Ja | `RESEND_API_KEY`, `MAIL_FROM` |
 | [Selskap og admin](#7-selskap-og-administratorer) | Ja | `OPERATOR_*`, `SUPPORT_EMAIL`, `ADMIN_EMAILS` |
+| [Lommebok](#9-lommebok-apple-wallet-og-google-wallet) | Valgfritt | `APPLE_WALLET_CERT`, `APPLE_WALLET_KEY`, `GOOGLE_WALLET_*` |
 
 ---
 
@@ -127,3 +128,57 @@ I produksjon er Resend påkrevd, fordi kvitteringer og billettoverføringer til 
 
 - iOS-appen: [ios.md](ios.md). Du trenger `APPLE_BUNDLE_IDS` i tillegg til Apple-nøklene over.
 - Tilgangskode for Apples anmeldere (`REVIEW_LOGIN_EMAIL`, `REVIEW_LOGIN_CODE`): [app-store/review-notes.md](app-store/review-notes.md). La den være av utenom gjennomgangen.
+
+## 9. Lommebok (Apple Wallet og Google Wallet)
+
+Valgfritt, men praktisk i døra. Under billetten får kjøperen en svart knapp: **«Legg til i Apple Lommebok»** på iPhone, iPad og Mac, og **«Legg til i Google Lommebok»** på Android og PC. Etterpå åpnes billetten med to trykk på sideknappen på iPhone, og den dukker opp på låseskjermen fra tre timer før dørene åpner. På mange Android-telefoner åpnes Google Lommebok med to trykk på av/på-knappen.
+
+**Viktig å vite:** Et lommebok-kort har en **fast QR-kode** (`TK2`), fordi Wallet ikke kan bytte kode hvert 15. sekund slik den levende billetten i appen gjør. Et skjermbilde av kortet slipper derfor inn én person, nemlig den som kommer først. Kortet slutter å virke i døra når billetten overføres, selges videre eller refunderes, og kortet kan ikke deles fra Apple Lommebok. Den levende billetten i appen er fortsatt tryggest.
+
+Kortene lages på serveren. TIKIT lagrer ingenting nytt.
+
+### Apple Wallet
+
+Krever medlemskap i Apple Developer Program (samme som for iOS-appen). Du trenger ikke Mac.
+
+1. Lag en nøkkel og en sertifikatforespørsel:
+   ```bash
+   openssl req -new -newkey rsa:2048 -nodes -keyout wallet.key -out wallet.csr -subj "/CN=TIKIT Wallet/O=Din Russetid AS/C=NO"
+   ```
+2. **developer.apple.com** → *Certificates, Identifiers & Profiles* → *Identifiers* → **+** → **Pass Type IDs**. Beskrivelse: «TIKIT billett». ID: `pass.no.tikit.billett`.
+3. *Certificates* → **+** → **Pass Type ID Certificate** → velg ID-en → last opp `wallet.csr` → last ned `pass.cer`.
+4. Gjør sertifikatet om til PEM:
+   ```bash
+   openssl x509 -inform der -in pass.cer -out wallet.pem
+   ```
+5. Legg inn innholdet i filene. Hos Render kan du lime inn med linjeskift. I `.env` må alt stå på én linje med `\n`, og `awk 'NF {printf "%s\\n", $0}' wallet.pem` skriver det ut slik.
+   - `APPLE_WALLET_CERT` = innholdet i `wallet.pem`
+   - `APPLE_WALLET_KEY` = innholdet i `wallet.key` (hemmelig, aldri i git)
+6. Kjør `npm run doctor`. Den skal vise «Apple Wallet: pass.no.tikit.billett · team … · gyldig til …».
+
+Pass Type ID og Team ID leses fra sertifikatet, og Apples mellomsertifikat (WWDR G4) er bygget inn. Sertifikatet varer i ett år. `npm run doctor` og serverloggen sier fra 30 dager før det går ut. Da gjentar du steg 1–5.
+
+Har du sertifikatet i Nøkkelring på en Mac? Eksporter det som `.p12` og hent ut filene:
+```bash
+openssl pkcs12 -in wallet.p12 -clcerts -nokeys -out wallet.pem
+openssl pkcs12 -in wallet.p12 -nocerts -nodes -out wallet.key
+```
+
+### Google Wallet
+
+1. **pay.google.com/business/console** → *Google Wallet API* → registrer selskapet som utsteder. Noter **Issuer ID** (et langt tall).
+2. **console.cloud.google.com** (gjerne samme prosjekt som Google-innloggingen) → *APIs & Services* → aktiver **Google Wallet API**.
+3. *IAM & Admin* → *Service Accounts* → **Create service account** (for eksempel `tikit-wallet`) → *Keys* → *Add key* → **JSON**. Last ned filen. Den er hemmelig.
+4. Tilbake i Wallet-konsollen: *Users* → **Invite a user** → e-posten til tjenestekontoen, med rollen **Developer**.
+5. Legg inn:
+   - `GOOGLE_WALLET_ISSUER_ID` = Issuer ID
+   - `GOOGLE_WALLET_SERVICE_ACCOUNT` = hele JSON-filen. I `.env` på én linje: `jq -c . nøkkelfil.json`
+6. Kjør `npm run doctor -- --online`. Den sjekker at tjenestekontoen har tilgang til utstederen.
+7. Så lenge utstederkontoen er i **testmodus**, virker kortene bare for testkontoer du legger til i konsollen. Be om publiseringstilgang (*Request publishing access*) før dere åpner salget.
+
+Google henter logoen på kortet fra `PUBLIC_URL/icons/icon-192.png`, så den må ligge på en offentlig https-adresse.
+
+### Før lansering
+
+- Apple og Google har egne regler for «Legg til i Lommebok»-knapper («Add to Apple Wallet Guidelines» og Google Wallet sine «Brand guidelines»). TIKIT bruker en svart knapp med egen tekst. Sjekk den mot reglene, og bytt eventuelt til de offisielle merkene. Knappene ligger i `src/web/components/ticket/WalletButtons.tsx`.
+- Kort som allerede er lagt i lommeboken, oppdateres ikke av seg selv hvis arrangøren endrer tid eller sted. Det krever Apples oppdateringstjeneste og Google Wallet API (se «Neste steg» i [ios.md](ios.md#neste-steg)).

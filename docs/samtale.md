@@ -167,6 +167,30 @@ Prompten ba om en rapport per agent og et JSON-sammendrag, og sluttet med:
 - **GitHub Actions** (`.github/workflows/`): `ci.yml` kjører typer, lint, tester, API-flytene mot ekte Postgres 17 og Playwright på hver pull request. `ios.yml` kompilerer iOS-appen med Xcode 26.6 på macOS. Den første kjøringen var grønn på alle fire jobbene, og Swift-koden kompilerte uten feil og advarsler.
 - **Ikke gjort:** iOS-appen er ikke kjørt på en ekte iPhone. Det krever signering med Apple Developer-kontoen. `samtale-vedlegg.md` fra forrige samtale var ikke med og kan legges til når du har den.
 
+### 28.–30. september: Supabase og Render
+
+- **Supabase:** prosjektet er laget i Frankfurt, og `DATABASE_URL` (session pooler) ligger i `.env` lokalt. Den er ikke i git. Skyøkta i Claude Code nådde ikke Supabase på port 5432 (tidsavbrudd), så `npm run doctor -- --online` må kjøres på din egen maskin eller sjekkes etter utrulling.
+- **Render:** første utrulling stoppet fordi `SESSION_SECRET`, `DATABASE_URL`, innlogging og Resend manglet (serveren nekter å starte uten dem i produksjon). Etter at miljøvariablene var lagt inn, kom nettsiden opp.
+- **Logo:** et utkast (hvitt på svart) ligger som artefakt i Claude-appen. Det er ikke tatt inn i appen.
+
+### 1. oktober: billetten i Apple Lommebok og Google Lommebok
+
+**Du:**
+
+> jeg trenger at du legger til muligheten til å legge en billet til som apple pay eller google pay, slik at de bare kan dobbel trykke av knappen for å få frem billeten fra appen, det skal være lett tilgjengelig mulighet
+
+**Claude:**
+
+- **Knappen:** under billetten står det nå en stor svart knapp, «Legg til i Apple Lommebok» på iPhone, iPad og Mac og «Legg til i Google Lommebok» på Android og PC. Den vises bare når serveren har nøklene (`src/web/components/ticket/WalletButtons.tsx`).
+- **Apple Wallet:** serveren lager et signert `.pkpass`-kort (`src/node/integrations/apple/wallet.ts`). Kortet åpnes med to trykk på sideknappen og dukker opp på låseskjermen fra tre timer før dørene åpner. Etter arrangementet blir det grått. Det kan ikke deles fra Lommebok. Pass Type ID og Team ID leses fra sertifikatet, og Apples mellomsertifikat er bygget inn.
+- **Google Wallet:** en signert «Lagre i Google Lommebok»-lenke med tjenestekontoen (`src/node/integrations/google/wallet.ts`).
+- **iOS-appen:** Apples eget «Legg til»-ark (PassKit) i `TikitNativePlugin.swift`. Det trengs ingen ny tillatelse.
+- **Sikkerhet:** kortet har en fast kode (`TK2`), fordi Wallet ikke kan bytte kode hvert 15. sekund. Den som kommer først, kommer inn, og koden slutter å virke i døra ved overføring, videresalg og refusjon. Når billetten bytter eier, får den nye eieren et nytt kort med ny ID.
+- **Oppsett:** [oppsett.md §9](oppsett.md#9-lommebok-apple-wallet-og-google-wallet), med `npm run doctor`-sjekk (og `--online` for Google). Personvernerklæringen, `docs/juridisk/` og protokollen nevner kortene.
+- **Tester:** 11 nye (115 totalt). Kortet ble også kontrollert med produksjonsbygget av serveren og et testsertifikat: lastet ned, signaturen verifisert med openssl og knappen sjekket med axe i lys og mørk modus på iPhone.
+- **Ikke testet:** et ekte kort på en iPhone og en Android-telefon. Det krever Pass Type ID-sertifikatet og Google-utstederkontoen.
+- **Rettet underveis:** `npm run test:e2e` leste `DATABASE_URL` og andre nøkler fra `.env`. På Macen din ville testene ha fylt Supabase-databasen med demodata. Nå bruker testene alltid en egen tom database og ingen ekte nøkler (`scripts/e2e-server.mjs`).
+
 ## Valg som er tatt
 
 - **Nettapp (PWA)**, ikke app i App Store eller Google Play. Kravene for en eventuell app senere er sjekket i [go-no-go.md](go-no-go.md).
@@ -240,6 +264,7 @@ Derfor ble koden levert som `tikit.zip`, og GitHub og Render gjøres fra Macen d
 - E-post som feiler, prøves på nytt i minnet og kan gå tapt ved en omstart. Billetten ligger uansett i appen.
 - En betaling som kommer inn etter at reservasjonen gikk ut, kan bruke en rabattkode én gang mer enn maks. Kunden har da allerede betalt rabattert pris.
 - Køen nullstilles ikke hvis salgsstarten flyttes etter at køen har åpnet.
+- Lommebok-kort har en fast kode og oppdateres ikke når tid eller sted endres.
 
 ## Nyttig å vite
 

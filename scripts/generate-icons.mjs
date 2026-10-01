@@ -38,6 +38,13 @@ await png(square(1), 512, 'public/icons/icon-512.png');
 // Maskable: keep the ticket inside the central 80 % circle.
 await png(square(0.78), 512, 'public/icons/icon-maskable-512.png');
 
+// Apple Wallet passes (src/node/integrations/apple/wallet.ts): the icon on the lock screen, the logo on the pass.
+mkdirSync('public/wallet', { recursive: true });
+for (const [scale, suffix] of [[1, ''], [2, '@2x'], [3, '@3x']]) {
+  await png(rounded, 29 * scale, `public/wallet/icon${suffix}.png`);
+  await png(rounded, 50 * scale, `public/wallet/logo${suffix}.png`);
+}
+
 // Link preview (1200×630) for shared event links without their own cover image.
 await page.setViewportSize({ width: 1200, height: 630 });
 await page.setContent(`<html><head><style>

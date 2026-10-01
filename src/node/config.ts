@@ -80,6 +80,16 @@ const envSchema = z.object({
   STRIPE_SECRET_KEY: optional,
   STRIPE_WEBHOOK_SECRET: optional,
 
+  /** Apple Wallet: Pass Type ID certificate and its key (PEM, `\n` escapes allowed). The pass type and team come from the certificate. */
+  APPLE_WALLET_CERT: optional,
+  APPLE_WALLET_KEY: optional,
+  APPLE_WALLET_KEY_PASSPHRASE: optional,
+  /** Only if Apple moves pass certificates off the WWDR G4 intermediate that is built in. */
+  APPLE_WALLET_WWDR_CERT: optional,
+  /** Google Wallet: issuer ID from the Google Pay & Wallet Console and the service account's JSON key. */
+  GOOGLE_WALLET_ISSUER_ID: optional,
+  GOOGLE_WALLET_SERVICE_ACCOUNT: optional,
+
   RESEND_API_KEY: optional,
   MAIL_FROM: optional,
   MAIL_REPLY_TO: optional,
@@ -98,6 +108,11 @@ export interface NodeConfig {
   native: { bundleIds: string[]; appIds: string[]; urlScheme: string; corsOrigins: string[] };
   /** App Review access (docs/app-store/review-notes.md). Null when off. */
   review: { email: string; code: string } | null;
+  /** Wallet passes (docs/oppsett.md §9). Null when not set up. */
+  wallet: {
+    apple: { certificate: string; privateKey: string; passphrase: string | null; wwdr: string | null; teamId: string | null } | null;
+    google: { issuerId: string; serviceAccount: string } | null;
+  };
   warnings: string[];
 }
 
@@ -220,6 +235,16 @@ export function loadConfig(source: Record<string, string | undefined> = process.
     if (review && production) warnings.push('App Review-tilgang er PÅ. Slå den av (tøm REVIEW_LOGIN_CODE) når Apple er ferdig med gjennomgangen.');
   }
 
+  // ── Wallet passes ──
+  const appleWallet =
+    env.APPLE_WALLET_CERT && env.APPLE_WALLET_KEY
+      ? { certificate: env.APPLE_WALLET_CERT, privateKey: env.APPLE_WALLET_KEY, passphrase: env.APPLE_WALLET_KEY_PASSPHRASE, wwdr: env.APPLE_WALLET_WWDR_CERT, teamId: env.APPLE_TEAM_ID }
+      : null;
+  if (!appleWallet && (env.APPLE_WALLET_CERT || env.APPLE_WALLET_KEY)) warnings.push('Apple Wallet er delvis konfigurert: både APPLE_WALLET_CERT og APPLE_WALLET_KEY må settes.');
+  const googleWallet = env.GOOGLE_WALLET_ISSUER_ID && env.GOOGLE_WALLET_SERVICE_ACCOUNT ? { issuerId: env.GOOGLE_WALLET_ISSUER_ID, serviceAccount: env.GOOGLE_WALLET_SERVICE_ACCOUNT } : null;
+  if (!googleWallet && (env.GOOGLE_WALLET_ISSUER_ID || env.GOOGLE_WALLET_SERVICE_ACCOUNT)) warnings.push('Google Wallet er delvis konfigurert: både GOOGLE_WALLET_ISSUER_ID og GOOGLE_WALLET_SERVICE_ACCOUNT må settes.');
+  if (googleWallet && !/^\d{10,25}$/.test(googleWallet.issuerId)) errors.push('GOOGLE_WALLET_ISSUER_ID skal bare være tall (Issuer ID fra Google Pay & Wallet Console).');
+
   if (errors.length > 0) throw new Error(`Konfigurasjonen er ikke klar for oppstart:\n${errors.map((e) => `  • ${e}`).join('\n')}`);
   return {
     env,
@@ -230,6 +255,7 @@ export function loadConfig(source: Record<string, string | undefined> = process.
     vipps,
     native: { bundleIds, appIds, urlScheme: env.APP_URL_SCHEME, corsOrigins },
     review,
+    wallet: { apple: appleWallet, google: googleWallet },
     warnings,
   };
 }

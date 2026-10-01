@@ -11,8 +11,12 @@
 | `apple/login.ts` | `OAuthAdapter` (nettsiden, form_post) | `APPLE_CLIENT_ID`, `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY` | [§4](../../../docs/oppsett.md#4-sign-in-with-apple) |
 | `apple/native.ts` | `AppleNativeAdapter` (iOS-knappen, tilbakekalling) | `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY`, `APPLE_BUNDLE_IDS` | [ios.md](../../../docs/ios.md) |
 | `apple/clientSecret.ts` | ES256-klienthemmelighet for Apple | – | – |
+| `apple/wallet.ts` | `WalletAdapter.apple`: signert `.pkpass` (Apple Wallet) | `APPLE_WALLET_CERT`, `APPLE_WALLET_KEY` | [§9](../../../docs/oppsett.md#9-lommebok-apple-wallet-og-google-wallet) |
+| `apple/wwdr.ts` | Apples offentlige WWDR G4-mellomsertifikat | – | – |
+| `google/wallet.ts` | `WalletAdapter.google`: «Lagre i Google Lommebok»-lenke | `GOOGLE_WALLET_ISSUER_ID`, `GOOGLE_WALLET_SERVICE_ACCOUNT` | [§9](../../../docs/oppsett.md#9-lommebok-apple-wallet-og-google-wallet) |
 | `stripe/payments.ts` | `PaymentAdapter` (Checkout + webhook) | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | [§5](../../../docs/oppsett.md#5-kortbetaling-stripe) |
 | `resend/mailer.ts` | `Mailer` | `RESEND_API_KEY`, `MAIL_FROM` | [§6](../../../docs/oppsett.md#6-e-post-resend) |
+| `zip.ts` | ZIP-arkiv for `.pkpass` | – | – |
 | `oidc.ts`, `shared.ts` | Felles hjelpere (telefonformat, callback-URL, idempotensnøkler, sammenligning i konstant tid) | – | – |
 
 Databasen (Supabase, Render Postgres, PGlite) ligger i `../db/`.

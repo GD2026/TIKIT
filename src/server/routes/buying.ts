@@ -16,6 +16,8 @@ import {
 } from '../services/tickets';
 import { refundTickets } from '../services/refunds';
 import { createStaticTicketCode } from '../../shared/qr';
+import { bytesToBase64Url, hmacSha256 } from '../../shared/encoding';
+import type { WalletPassInput } from '../adapters/types';
 import type { Deps } from '../context';
 import { appLink } from '../context';
 
@@ -135,29 +137,38 @@ export function buyingRoutes(deps: Deps): Hono<AppEnv> {
     });
   });
 
-  app.get('/tickets/:id/wallet/:kind', async (c) => {
+  app.get('/tickets/:id/wallet/:kind', limit('wallet', 30, 60 * 60_000, 'user'), async (c) => {
     const user = requireUser(c);
     const kind = c.req.param('kind');
     const t = await getTicket(deps, user, c.req.param('id'));
     if (!t.secret) throw new AppError('ticket_busy', { message: 'Billetten kan ikke legges i lommeboken nå.' });
     const wallet = deps.wallet;
-    const input = {
+    const input: WalletPassInput = {
       ticketId: t.id,
+      serial: `${t.id}-${bytesToBase64Url(await hmacSha256(t.secret, 'wallet-serial')).slice(0, 10)}`,
       number: t.number,
+      eventId: t.event.id,
       eventTitle: t.event.title,
-      venue: `${t.event.venue.name}, ${t.event.venue.city}`,
+      venue: { name: t.event.venue.name, address: [t.event.venue.address, [t.event.venue.postalCode, t.event.venue.city].filter(Boolean).join(' ')].filter(Boolean).join(', ') },
       startsAt: t.event.startsAt,
+      endsAt: t.event.endsAt,
+      doorsAt: t.event.doorsAt,
       holderName: t.holderName,
       typeName: t.typeName,
       seat: t.seat ? `${t.seat.section}, rad ${t.seat.row}, sete ${t.seat.number}` : null,
       barcode: await createStaticTicketCode(t.id, t.secret),
-      colors: { background: '#111122', foreground: '#FFFFFF', label: '#B8C0FF' },
+      colors: { background: '#0B0A24', foreground: '#FFFFFF', label: '#B8C0FF' },
       organizer: t.event.organizerName,
+      ticketUrl: appLink(deps.config, `/billetter/${t.id}`),
     };
     if (kind === 'apple' && wallet?.apple) {
       const pass = await wallet.apple(input);
       return new Response(pass as unknown as ConstructorParameters<typeof Response>[0], {
-        headers: { 'Content-Type': 'application/vnd.apple.pkpass', 'Content-Disposition': `attachment; filename="${t.number}.pkpass"` },
+        headers: {
+          'Content-Type': 'application/vnd.apple.pkpass',
+          'Content-Disposition': `attachment; filename="${t.number}.pkpass"`,
+          'Cache-Control': 'no-store',
+        },
       });
     }
     if (kind === 'google' && wallet?.google) {

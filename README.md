@@ -15,6 +15,7 @@ Finnes som **nettapp (PWA)** og **iOS-app** (Capacitor, samme kode). Designet f�
 - **Nummerert salkart** med setevalg
 - Kasse med reservasjon (10 min, 20 min under betaling), navn på billettene, Vipps eller kort
 - **Levende billett**: QR-koden fornyes hvert 15. sekund og regnes ut på telefonen – virker uten nett
+- **Apple Lommebok og Google Lommebok**: billetten på låseskjermen og bak to trykk på sideknappen (valgfritt, se [oppsett.md §9](docs/oppsett.md#9-lommebok-apple-wallet-og-google-wallet))
 - **Overføring** til venner med engangslenke (ny QR-kode og nytt billettnummer for mottakeren)
 - **Videresalg** i appen til maks det du betalte (loven forbyr prispåslag)
 - **Refusjon** etter arrangørens regler, og automatisk ved avlysning
@@ -37,7 +38,7 @@ Finnes som **nettapp (PWA)** og **iOS-app** (Capacitor, samme kode). Designet f�
 
 **iOS-appen** ([docs/ios.md](docs/ios.md))
 - Innebygd «Logg på med Apple», innlogging med Vipps og Google via systemnettleseren, og økten i nøkkelringen
-- Vipps-betaling som sender deg tilbake til appen, billetter uten nett, dørskanner, deleark og haptikk
+- Vipps-betaling som sender deg tilbake til appen, billetter uten nett, «Legg til i Apple Lommebok» med Apples eget ark, dørskanner, deleark og haptikk
 - Gjennomgått mot Apples retningslinjer: [docs/app-store/](docs/app-store/README.md)
 
 ## Kom i gang (utvikling)
@@ -83,7 +84,7 @@ De samme kontrollene kjører automatisk på GitHub (`.github/workflows/`) på hv
 - **iOS-appen:** [docs/ios.md](docs/ios.md) · **App Store:** [docs/app-store/](docs/app-store/README.md)
 - **Sikkerhet, samsvar og go/no-go:** [docs/go-no-go.md](docs/go-no-go.md)
 - **Personvern, vilkår og informasjonskapsler (norsk og engelsk):** [docs/juridisk/](docs/juridisk/)
-- **Nøkler for Supabase, Vipps, Google, Apple, Stripe og e-post:** [docs/oppsett.md](docs/oppsett.md)
+- **Nøkler for Supabase, Vipps, Google, Apple, Stripe, e-post og lommebok:** [docs/oppsett.md](docs/oppsett.md)
 - **Publisering (Render, Docker), bakgrunnsjobber, overvåking og sjekkliste før salg:** [docs/drift.md](docs/drift.md)
 - **Utviklerverktøy (Claude Code, Obscura, Higgsfield, OmniRoute – appen bruker ikke AI):** [docs/utviklerverktoy.md](docs/utviklerverktoy.md)
 - **Hele historikken:** [docs/samtale.md](docs/samtale.md)

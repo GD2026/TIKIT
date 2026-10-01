@@ -26,6 +26,7 @@ import { createResendMailer } from './integrations/resend/mailer';
 import { appReturnPage, appleAppSiteAssociation, nativeCors } from './appLinks';
 import { securityHeaders } from './security';
 import { loadDemoCovers } from './demoImages';
+import { createWalletAdapter } from './wallet';
 
 export interface TikitServer {
   app: Hono;
@@ -184,6 +185,8 @@ export async function createTikitServer(cfg: NodeConfig, log: Logger): Promise<T
     ? createResendMailer({ apiKey: env.RESEND_API_KEY, from: env.MAIL_FROM!, replyTo: env.MAIL_REPLY_TO ?? env.SUPPORT_EMAIL }, log)
     : createOutboxMailer(store, (m) => log.info(m));
 
+  const staticRoot = path.resolve(env.STATIC_DIR);
+
   const deps: Deps = {
     store,
     config,
@@ -192,7 +195,7 @@ export async function createTikitServer(cfg: NodeConfig, log: Logger): Promise<T
     payments,
     mailer,
     log,
-    wallet: null,
+    wallet: createWalletAdapter(cfg, staticRoot, log),
     appleNative,
     clientIp: clientIpResolver(env.TRUST_PROXY, env.CLIENT_IP_HEADER?.toLowerCase() ?? null),
   };
@@ -205,7 +208,6 @@ export async function createTikitServer(cfg: NodeConfig, log: Logger): Promise<T
   }
 
   // ── HTTP ────────────────────────────────────────────────────────────────
-  const staticRoot = path.resolve(env.STATIC_DIR);
   let indexHtml: string | null = null;
   const loadIndex = async () => {
     if (indexHtml === null || !cfg.production) {
