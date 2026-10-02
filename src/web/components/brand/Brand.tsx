@@ -1,46 +1,41 @@
-import { useId, type ButtonHTMLAttributes } from 'react';
+import type { ButtonHTMLAttributes } from 'react';
 import { cn } from '../../lib/cn';
 import { Spinner } from '../ui/Feedback';
+import { ICON_SIZE, ICON_WORDMARK_X, ICON_WORDMARK_Y, WORDMARK_HEIGHT, WORDMARK_PATH, WORDMARK_WIDTH } from './wordmark';
 
-/** The TIKIT mark: a ticket stub, tilted like one just torn off. */
+/** The app icon: the white wordmark on black, as on the home screen. */
 export function LogoMark({ size = 32, className }: { size?: number; className?: string }) {
-  const gid = `tikit-mark-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
   return (
-    <svg viewBox="0 0 64 64" width={size} height={size} className={className} aria-hidden="true">
-      <defs>
-        <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#1B1464" />
-          <stop offset="0.62" stopColor="#3B4CF2" />
-          <stop offset="1" stopColor="#FF6FB5" />
-        </linearGradient>
-      </defs>
-      <rect width="64" height="64" rx="15" fill={`url(#${gid})`} />
-      <g transform="rotate(-14 32 32)">
-        <path
-          d="M14 21a4 4 0 0 1 4-4h28a4 4 0 0 1 4 4v5a6 6 0 0 0 0 12v5a4 4 0 0 1-4 4H18a4 4 0 0 1-4-4v-5a6 6 0 0 0 0-12z"
-          fill="#fff"
-        />
-        <path d="M37 20v24" stroke="#3B4CF2" strokeWidth="2.4" strokeDasharray="2.6 3.2" strokeLinecap="round" />
-        <rect x="20" y="27" width="11" height="3.4" rx="1.7" fill="#1B1464" />
-        <rect x="20" y="33.6" width="7" height="3.4" rx="1.7" fill="#1B1464" opacity="0.45" />
-      </g>
+    <svg viewBox={`0 0 ${ICON_SIZE} ${ICON_SIZE}`} width={size} height={size} className={className} aria-hidden="true">
+      {/* The hairline keeps the black tile visible on a black background (dark mode). */}
+      <rect x="4" y="4" width={ICON_SIZE - 8} height={ICON_SIZE - 8} rx="240" fill="#000" stroke="rgba(255,255,255,0.18)" strokeWidth="8" />
+      <path transform={`translate(${ICON_WORDMARK_X} ${ICON_WORDMARK_Y})`} fill="#fff" d={WORDMARK_PATH} />
     </svg>
   );
 }
 
-export function Wordmark({ className }: { className?: string }) {
+/** The TIKIT wordmark in the text colour (black in light mode, white in dark mode). */
+export function Wordmark({ height = 18, className }: { height?: number; className?: string }) {
   return (
-    <span className={cn('display text-[1.35rem] leading-none tracking-[0.02em]', className)} style={{ fontStretch: '125%', fontWeight: 900 }}>
-      TIKIT
-    </span>
+    <svg
+      viewBox={`0 0 ${WORDMARK_WIDTH} ${WORDMARK_HEIGHT}`}
+      height={height}
+      width={Math.round((height * WORDMARK_WIDTH) / WORDMARK_HEIGHT)}
+      className={cn('shrink-0', className)}
+      fill="currentColor"
+      role="img"
+      aria-label="TIKIT"
+    >
+      <path d={WORDMARK_PATH} />
+    </svg>
   );
 }
 
+/** The logo in the app's chrome. `size` is the height of the space it fills. */
 export function Logo({ className, size = 30 }: { className?: string; size?: number }) {
   return (
-    <span className={cn('inline-flex items-center gap-2.5', className)}>
-      <LogoMark size={size} />
-      <Wordmark />
+    <span className={cn('inline-flex items-center', className)}>
+      <Wordmark height={Math.round(size * 0.6)} />
     </span>
   );
 }

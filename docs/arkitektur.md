@@ -115,6 +115,7 @@ Eksempel: kjøperen trykker «Betal» i kassen.
 | legge til et felt på arrangementer | `src/shared/types.ts` (`EventDoc`, `EventCard`) → `schemas.ts` → `services/events.ts` → `web/organizer/EventEditor.tsx` |
 | endre en tekst i appen | skjermen i `src/web/screens/` (all tekst er norsk og står i komponentene) |
 | endre farger og typografi | `src/web/styles/app.css` |
+| bytte logoen | formen i `src/web/components/brand/wordmark.ts` (originalen ligger i `assets/brand/`), deretter `npm run icons` for appikoner, iOS-ikon, oppstartsbilde, delingsbilde og Wallet-bilder |
 | endre e-postene | `src/server/services/emails.ts` (mal) og der e-posten sendes (`notify(...)`) |
 | endre lagringstider (GDPR) | `src/server/services/retention.ts` + personvernerklæringen (`Legal.tsx` og `docs/juridisk/`) |
 | endre refusjonsregler | `src/shared/constants.ts` (`REFUND_POLICIES`) + `services/refunds.ts` |

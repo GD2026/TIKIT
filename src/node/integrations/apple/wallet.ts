@@ -130,7 +130,7 @@ export function applePassJson(input: WalletPassInput, ids: { passTypeId: string;
     serialNumber: input.serial,
     organizationName: input.organizer || 'TIKIT',
     description: `Billett til ${input.eventTitle}`,
-    logoText: 'TIKIT',
+    // logo.png is the wordmark itself, so no logoText next to it.
     foregroundColor: rgb(input.colors.foreground),
     backgroundColor: rgb(input.colors.background),
     labelColor: rgb(input.colors.label),

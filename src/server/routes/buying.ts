@@ -157,7 +157,7 @@ export function buyingRoutes(deps: Deps): Hono<AppEnv> {
       typeName: t.typeName,
       seat: t.seat ? `${t.seat.section}, rad ${t.seat.row}, sete ${t.seat.number}` : null,
       barcode: await createStaticTicketCode(t.id, t.secret),
-      colors: { background: '#0B0A24', foreground: '#FFFFFF', label: '#B8C0FF' },
+      colors: { background: '#000000', foreground: '#FFFFFF', label: '#AEAEB2' },
       organizer: t.event.organizerName,
       ticketUrl: appLink(deps.config, `/billetter/${t.id}`),
     };

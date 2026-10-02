@@ -171,7 +171,7 @@ Prompten ba om en rapport per agent og et JSON-sammendrag, og sluttet med:
 
 - **Supabase:** prosjektet er laget i Frankfurt, og `DATABASE_URL` (session pooler) ligger i `.env` lokalt. Den er ikke i git. Skyøkta i Claude Code nådde ikke Supabase på port 5432 (tidsavbrudd), så `npm run doctor -- --online` må kjøres på din egen maskin eller sjekkes etter utrulling.
 - **Render:** første utrulling stoppet fordi `SESSION_SECRET`, `DATABASE_URL`, innlogging og Resend manglet (serveren nekter å starte uten dem i produksjon). Etter at miljøvariablene var lagt inn, kom nettsiden opp.
-- **Logo:** et utkast (hvitt på svart) ligger som artefakt i Claude-appen. Det er ikke tatt inn i appen.
+- **Logo:** et første utkast lå som artefakt i Claude-appen. Det ble erstattet av din egen logo 2. oktober (se under).
 
 ### 1. oktober: billetten i Apple Lommebok og Google Lommebok
 
@@ -190,6 +190,16 @@ Prompten ba om en rapport per agent og et JSON-sammendrag, og sluttet med:
 - **Tester:** 11 nye (115 totalt). Kortet ble også kontrollert med produksjonsbygget av serveren og et testsertifikat: lastet ned, signaturen verifisert med openssl og knappen sjekket med axe i lys og mørk modus på iPhone.
 - **Ikke testet:** et ekte kort på en iPhone og en Android-telefon. Det krever Pass Type ID-sertifikatet og Google-utstederkontoen.
 - **Rettet underveis:** `npm run test:e2e` leste `DATABASE_URL` og andre nøkler fra `.env`. På Macen din ville testene ha fylt Supabase-databasen med demodata. Nå bruker testene alltid en egen tom database og ingen ekte nøkler (`scripts/e2e-server.mjs`).
+
+### 2. oktober: ny logo
+
+**Du:** sendte logoen (hvitt TIKIT på svart, der den første I-en er delt av en skråstrek) og ba om at den brukes i appen.
+
+**Claude:**
+
+- Logoen er tegnet om til vektor (`src/web/components/brand/wordmark.ts`) etter originalen (`assets/brand/tikit-logo.png`). Den avviker fra originalen med under 0,1 % per piksel.
+- Den brukes i appen (sidemenyen, innloggingsarket og arrangørsiden), i appikonene (nettleserfanen, hjemskjermen, Android og iOS), i oppstartsbildet i iOS-appen (nå svart), i forhåndsvisningen når en lenke deles, og på Wallet-kortet (svart kort med ordmerket øverst).
+- Alt lages med `npm run icons`.
 
 ## Valg som er tatt
 
