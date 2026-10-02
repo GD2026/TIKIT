@@ -23,7 +23,7 @@ const config: CapacitorConfig = {
       // Hidden by the app once the first screen has rendered (src/web/native/index.ts).
       launchAutoHide: false,
       launchShowDuration: 3000,
-      backgroundColor: '#0b0a24',
+      backgroundColor: '#000000',
       showSpinner: false,
     },
     StatusBar: {
